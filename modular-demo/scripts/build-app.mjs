@@ -19,8 +19,7 @@ const workerSource = `export default {
       });
     }
     if (url.pathname.startsWith('/api/')) {
-      const target = new URL(url.pathname + url.search, 'https://platform.internal');
-      return env.PLATFORM.fetch(new Request(target, request));
+      return env.PLATFORM.fetch(request);
     }
     return env.ASSETS.fetch(request);
   }
