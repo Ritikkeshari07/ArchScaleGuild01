@@ -12,7 +12,7 @@
 
 ## Verification
 
-Automated checks: **3 passed, 0 failed** using Node's built-in test runner. The tests exercise module logic and removal behavior using isolated in-memory state. The local HTTP server could not be reached from this restricted execution session, so browser/API end-to-end verification remains to be done on the development machine.
+Automated checks: **4 passed, 0 failed** using Node's built-in test runner. The tests exercise module logic and removal behavior using isolated in-memory state. The local HTTP server could not be reached from this restricted execution session, so browser/API end-to-end verification remains to be done on the development machine.
 
 ## Remaining before production
 
@@ -28,3 +28,5 @@ Install Node.js 18+, open this project folder, and run `Run-Demo.cmd` (or `npm s
 ## Reference
 
 The folder/manifest pattern was informed by ProjectMeru's Sumeru addon framework. This proof of concept is original implementation code. Sumeru's standard Sales module has hard dependencies and is pre-alpha, so its code is a structural reference only; it does not prove this removal behavior.
+
+
