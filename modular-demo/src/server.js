@@ -44,7 +44,11 @@ async function route(req,res) {
     catch(error) { return send(res,400,{error:error.message}); }
   }
   if (req.method === 'GET') {
-    const requested = url.pathname === '/' ? 'index.html' : url.pathname.slice(1);
+    const appPage = url.pathname.match(/^\/apps\/(contacts|products|orders|tasks)\/?$/);
+    const requested = url.pathname === '/' ? 'index.html'
+      : url.pathname === '/admin' || url.pathname === '/admin/' ? 'admin/index.html'
+      : appPage ? `apps/${appPage[1]}/index.html`
+      : url.pathname.slice(1);
     const file = path.resolve(publicDir, requested);
     if (!file.startsWith(path.resolve(publicDir)+path.sep) && file!==path.join(publicDir,'index.html')) return send(res,403,{error:'Forbidden'});
     if (!fs.existsSync(file) || !fs.statSync(file).isFile()) return send(res,404,{error:'Not found'});

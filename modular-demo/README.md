@@ -10,7 +10,15 @@ Requirements: Node.js 18 or newer. From this folder:
 npm start
 ```
 
-Open http://127.0.0.1:3000. Click **Load demo story** for ABC Studio → Marble Sample (₹500) → ORD-001 (4 items, ₹2,000) → Confirm delivery. Use the registry controls to deactivate, retire, reactivate, or delete one app's records. Data is stored only in `data/store.json`.
+Open http://127.0.0.1:3000. The home page launches four separate app workspaces:
+
+- Contacts: http://127.0.0.1:3000/apps/contacts
+- Products: http://127.0.0.1:3000/apps/products
+- Orders: http://127.0.0.1:3000/apps/orders
+- Tasks: http://127.0.0.1:3000/apps/tasks
+- Super Admin: http://127.0.0.1:3000/admin
+
+Each app has its own page, URL, and backend module. The apps share the local platform API and JSON database so Orders can use Contacts and Products, and Tasks can reference Orders. Click **Load demo story** on the home page or Super Admin page for ABC Studio → Marble Sample (₹500) → ORD-001 (4 items, ₹2,000). Use Super Admin controls to deactivate, retire, reactivate, or delete one app's records. Data is stored only in `data/store.json`.
 
 Run the automated checks with `npm test`.
 
@@ -18,7 +26,9 @@ Run the automated checks with `npm test`.
 
 - `src/platform/` — module registry, JSON database adapter, validation, and lifecycle policy.
 - `src/apps/{contacts,products,orders,tasks}/` — independent app logic and manifests.
-- `public/` — demo interface.
+- `public/apps/{contacts,products,orders,tasks}/` — separate app entry pages, with shared styling and client helpers.
+- `public/admin/` — Super Admin registry and lifecycle controls.
+- `public/` — app launcher and shared styling/client helpers.
 - `test/` — module removal and snapshot behavior tests.
 - `data/store.json` — local disposable demo database, created on first run.
 
@@ -28,6 +38,7 @@ Run the automated checks with `npm test`.
 - Tasks save the order reference text; they can still be created with manual order text.
 - Deactivate/retire disables the selected app while preserving its records.
 - Delete clears only the selected app's owned collection. Other apps' saved snapshots remain.
+- Each app has its own browser workspace URL while sharing the platform API and local database.
 - Super Admin UI actions are intentionally unauthenticated for the localhost demo. This is not production security.
 
 ## Reference and scope

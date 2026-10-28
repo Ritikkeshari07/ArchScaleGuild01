@@ -76,4 +76,3 @@ test('contact and task removal do not remove other apps or saved customer snapsh
   assert.equal(manual.total,10);
 });
 
-

@@ -1,5 +1,8 @@
 const labels={contacts:'Contacts',products:'Products',orders:'Orders',tasks:'Tasks'};
-let current='contacts', model;
+const pathName=location.pathname.replace(/\/$/,'');
+const isAdmin=pathName==='/admin';
+const current=pathName.startsWith('/apps/')?pathName.split('/')[2]:null;
+let model;
 const $=s=>document.querySelector(s);
 async function api(url,options={}){const r=await fetch(url,{headers:{'content-type':'application/json'},...options});const data=await r.json();if(!r.ok)throw new Error(data.error||'Request failed');return data;}
 function esc(x=''){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
@@ -7,26 +10,37 @@ function options(rows,labelKey='name'){return '<option value="">Manual entry / n
 function field(label,name,type='text',required=false,extra=''){return `<label>${label}<input name="${name}" type="${type}" ${required?'required':''} ${extra}></label>`;}
 function render(){
  const s=model.state;
- $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted';return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small></div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'?'disabled':''}>Delete data</button></div></article>`}).join('');
- $('#tabs').innerHTML=Object.keys(labels).map(id=>`<button class="tab ${current===id?'selected':''}" data-tab="${id}" ${s.modules[id]?.status!=='active'?'disabled':''}>${labels[id]}</button>`).join('');
- $('#workspace').innerHTML=renderApp(current,s);
- $('#audit').innerHTML=s.audit.slice(0,8).map(x=>`<div class="auditrow"><span class="pill">${esc(x.action)}</span><b>${esc(labels[x.moduleId]||x.moduleId)}</b><span>${esc(x.details)}</span><time>${new Date(x.at).toLocaleTimeString()}</time></div>`).join('')||'<p class="muted">No actions yet.</p>';
+ if(!current&&!isAdmin){
+  $('#app-cards').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted';return `<a class="app-card ${status}" href="/apps/${d.id}"><div><span class="eyebrow">SEPARATE APP</span><h3>${d.name}</h3><p>${d.description}</p></div><span class="pill ${status}">${status}</span><b class="open-app">Open ${d.name} →</b></a>`}).join('');
+ }
+ if(isAdmin){
+  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted';return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><a class="small-link" href="/apps/${d.id}">Open app workspace →</a></div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'?'disabled':''}>Delete data</button></div></article>`}).join('');
+  $('#audit').innerHTML=s.audit.slice(0,8).map(x=>`<div class="auditrow"><span class="pill">${esc(x.action)}</span><b>${esc(labels[x.moduleId]||x.moduleId)}</b><span>${esc(x.details)}</span><time>${new Date(x.at).toLocaleTimeString()}</time></div>`).join('')||'<p class="muted">No actions yet.</p>';
+ }
+ if(current){
+  if(!labels[current]){ $('#workspace').textContent='App not found.'; return; }
+  $('#app-title').textContent=labels[current];
+  $('#app-nav').innerHTML=Object.keys(labels).map(id=>`<a class="app-nav-link ${id===current?'current':''} ${s.modules[id]?.status==='active'?'':'unavailable'}" href="/apps/${id}">${labels[id]} <span class="pill ${s.modules[id]?.status||'deleted'}">${s.modules[id]?.status||'deleted'}</span></a>`).join('');
+  const status=s.modules[current]?.status||'deleted';
+  if(status!=='active'){$('#status-message').innerHTML=`<div class="notice"><b>${labels[current]} is ${status}.</b> Ask Super Admin to activate it before using this app. Other app workspaces are available separately.</div>`;$('#workspace').innerHTML='';return;}
+  $('#status-message').innerHTML='';
+  $('#workspace').innerHTML=renderApp(current,s);
+ }
 }
 function renderApp(id,s){const data=s[id]||[];
  const forms={
  contacts:`${field('Name','name','text',true)}${field('Organization','organization')}${field('Email','email','email')}${field('Phone','phone')}${field('City','city')}`,
  products:`${field('Product name','name','text',true)}${field('SKU','sku','text',true)}${field('Category','category')}${field('Unit','unit','text',true)}${field('Price (₹)','price','number',true,'min="0" step="0.01"')}`,
- orders:`${field('Order no.','orderNo','text',true)}<label>Customer from Contacts<select name="customerId">${options(s.contacts)}</select></label>${field('Customer name (fallback)','customerName') }<label>Product from Products<select name="productId">${options(s.products)}</select></label>${field('Product name (fallback)','productName')}${field('Unit price (₹) fallback','unitPrice','number',false,'min="0" step="0.01"')}${field('Quantity','quantity','number',true,'min="1" step="1"')}${field('Status','status')}`,
+ orders:`${field('Order no.','orderNo','text',true)}<label>Customer from Contacts<select name="customerId">${options(s.contacts)}</select></label>${field('Customer name (fallback)','customerName')}<label>Product from Products<select name="productId">${options(s.products)}</select></label>${field('Product name (fallback)','productName')}${field('Unit price (₹) fallback','unitPrice','number',false,'min="0" step="0.01"')}${field('Quantity','quantity','number',true,'min="1" step="1"')}${field('Status','status')}`,
  tasks:`${field('Task name','name','text',true)}${field('Assigned to','assignedTo','text',true)}<label>Related order<select name="orderId">${options(s.orders,'orderNo')}</select></label>${field('Order reference (fallback)','orderRef')}${field('Due date','dueDate','date')}${field('Status','status')}`
  };
- let rows=data.map(x=>`<tr>${recordCells(id,x)}</tr>`).join('');
- return `<div class="apphead"><div><span class="eyebrow">APP · ${id.toUpperCase()}</span><h2>${labels[id]}</h2></div><span class="pill active">active</span></div><form id="create" data-id="${id}" class="formgrid">${forms[id]}<button class="primary" type="submit">Save ${labels[id].slice(0,-1)}</button></form><div class="tablewrap"><table><thead><tr>${headers(id)}</tr></thead><tbody>${rows||`<tr><td colspan="8" class="empty">No ${labels[id].toLowerCase()} yet. Load demo story or add one above.</td></tr>`}</tbody></table></div>`;
+ const rows=data.map(x=>`<tr>${recordCells(id,x)}</tr>`).join('');
+ return `<div class="apphead"><div><span class="eyebrow">STANDALONE WORKSPACE · ${id.toUpperCase()}</span><h2>${labels[id]}</h2></div><span class="pill active">active</span></div><p class="muted">This app has its own page and module. Linked information is read from the shared platform.</p><form id="create" data-id="${id}" class="formgrid">${forms[id]}<button class="primary" type="submit">Save ${({contacts:'Contact',products:'Product',orders:'Order',tasks:'Task'})[id]}</button></form><div class="tablewrap"><table><thead><tr>${headers(id)}</tr></thead><tbody>${rows||`<tr><td colspan="8" class="empty">No ${labels[id].toLowerCase()} yet. Load the demo story from the home page or add one above.</td></tr>`}</tbody></table></div>`;
 }
 function headers(id){return ({contacts:'<th>Name</th><th>Organization</th><th>Email</th><th>Phone</th><th>City</th>',products:'<th>Product</th><th>SKU</th><th>Category</th><th>Unit</th><th>Price</th>',orders:'<th>Order</th><th>Customer snapshot</th><th>Product snapshot</th><th>Qty</th><th>Unit price</th><th>Total</th><th>Status</th>',tasks:'<th>Task</th><th>Assignee</th><th>Order reference snapshot</th><th>Due date</th><th>Status</th>'})[id];}
 function recordCells(id,x){if(id==='contacts')return `<td>${esc(x.name)}</td><td>${esc(x.organization)}</td><td>${esc(x.email)}</td><td>${esc(x.phone)}</td><td>${esc(x.city)}</td>`;if(id==='products')return `<td>${esc(x.name)}</td><td>${esc(x.sku)}</td><td>${esc(x.category)}</td><td>${esc(x.unit)}</td><td>₹${Number(x.price).toFixed(2)}</td>`;if(id==='orders')return `<td>${esc(x.orderNo)}</td><td>${esc(x.customerName)}</td><td>${esc(x.productName)}</td><td>${x.quantity}</td><td>₹${Number(x.unitPrice).toFixed(2)}</td><td>₹${Number(x.total).toFixed(2)}</td><td>${esc(x.status)}</td>`;return `<td>${esc(x.name)}</td><td>${esc(x.assignedTo)}</td><td>${esc(x.orderRef)}</td><td>${esc(x.dueDate)}</td><td>${esc(x.status)}</td>`;}
 async function refresh(){model=await api('/api/state');render();}
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-tab]');if(b){current=b.dataset.tab;render();}});
-$('#registry').addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm(`Delete ${labels[id]} records from the local demo database? Other apps keep their snapshots.`))return;try{await api(`/api/admin/modules/${id}/${action}`,{method:'POST'});await refresh();}catch(err){alert(err.message);}});
-$('#workspace').addEventListener('submit',async e=>{if(e.target.id!=='create')return;e.preventDefault();const payload=Object.fromEntries(new FormData(e.target));try{await api(`/api/${e.target.dataset.id}`,{method:'POST',body:JSON.stringify(payload)});await refresh();}catch(err){alert(err.message);}});
-$('#reset').addEventListener('click',async()=>{if(!confirm('Reset the local demo database and load the ABC Studio story?'))return;await api('/api/demo/reset',{method:'POST'});current='orders';await refresh();});
-refresh().catch(e=>{$('#workspace').textContent=e.message;});
+if(isAdmin){$('#registry').addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm(`Delete ${labels[id]} records from the local demo database? Other apps keep their snapshots.`))return;try{await api(`/api/admin/modules/${id}/${action}`,{method:'POST'});await refresh();}catch(err){alert(err.message);}});}
+if(current){$('#workspace').addEventListener('submit',async e=>{if(e.target.id!=='create')return;e.preventDefault();const payload=Object.fromEntries(new FormData(e.target));try{await api(`/api/${e.target.dataset.id}`,{method:'POST',body:JSON.stringify(payload)});await refresh();}catch(err){alert(err.message);}});}
+if($('#reset'))$('#reset').addEventListener('click',async()=>{if(!confirm('Reset the local demo database and load the ABC Studio story?'))return;await api('/api/demo/reset',{method:'POST'});await refresh();});
+refresh().catch(e=>{const target=$('#workspace')||$('#app-cards')||$('#registry');if(target)target.textContent=e.message;});
