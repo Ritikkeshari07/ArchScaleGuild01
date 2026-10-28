@@ -24,16 +24,18 @@ Run the automated checks with `npm test`.
 
 ## Hosted preview (demo only)
 
-The Cloudflare Worker entry point (`src/worker.mjs`) serves the same app workspaces and uses the D1 binding configured in `wrangler.jsonc`. Migration `0002_app_owned_tables.sql` moves hosted demo records into separate Contacts, Products, Orders, and Tasks tables while preserving IDs and display snapshots. A revision check rejects simultaneous stale writes. The hosted preview requires a `DEMO_PASSWORD` secret and fails closed until it is configured.
+The platform Worker (`src/worker.mjs`) owns the D1 database and API. Migration `0002_app_owned_tables.sql` moves hosted demo records into separate Contacts, Products, Orders, and Tasks tables while preserving IDs and display snapshots. Migration `0003_independent_deployments.sql` tracks each app's Worker and repository path separately from data lifecycle. App Worker packages are generated one at a time with `node scripts/build-app.mjs contacts` (or `products`, `orders`, `tasks`); each app calls the shared platform through a Cloudflare Service binding. A revision check rejects simultaneous stale writes. The hosted demo requires a `DEMO_PASSWORD` secret and fails closed for API access until it is configured.
 
 To preview locally with Cloudflare, run `npm run cf:dev` after authenticating Wrangler and creating `.dev.vars` with a `DEMO_PASSWORD` value. Apply the migration with `npx wrangler d1 migrations apply archscale-four-apps-demo --local`. Deploy with `npm run cf:deploy` after applying it remotely with `npx wrangler d1 migrations apply archscale-four-apps-demo --remote` and adding the `DEMO_PASSWORD` secret in Cloudflare. For automated Git deployments, connect this Worker to the `modular-four-apps-demo` GitHub branch through Workers Builds.
 
-This is still a manager-review demo, not production: the password gate is shared access, not user accounts or RBAC. The hosted Worker and UI are still one deployment; the D1 tables establish separate data ownership but do not yet let each app deploy or be removed independently. The app tables deliberately avoid cross-app foreign keys so removing one app's records does not cascade into another app. Use sample data only. Before production, separate app deployments behind a stable platform API, add real authentication/authorization, review migrations, backups, and audit retention.
+This remains a manager-review demo, not production: the password gate is shared access, not user accounts or RBAC. The four Worker packages and service bindings establish independent deployment boundaries around one stable data/API service. In this branch, the independent Workers are scaffolded; their Cloudflare build connections and live deployment still need to be provisioned and verified. App records and shared D1 are deliberately separate from Worker deployment, so removing an app Worker does not cascade into another app's records. Use sample data only. Before production, add real authentication/authorization, reviewed migrations, backups, and audit retention.
 
 ## Folder structure
 
 - `src/platform/` — module registry, local JSON adapter, Cloudflare D1 adapter, validation, and lifecycle policy.
 - `src/apps/{contacts,products,orders,tasks}/` — independent app logic and manifests.
+- `scripts/build-app.mjs` — generates one app Worker package at a time with its own URL, assets, and service binding to the shared platform API.
+- `deployables/{contacts,products,orders,tasks}/` — generated, independently deployable Cloudflare Worker packages (created by the build script).
 - `public/apps/{contacts,products,orders,tasks}/` — separate app entry pages, with shared styling and client helpers.
 - `public/admin/` — Super Admin registry and lifecycle controls.
 - `public/` — app launcher and shared styling/client helpers.
@@ -58,5 +60,4 @@ The modular addon/folder and manifest concept was informed by [ProjectMeru/sumer
 
 ## Known gaps before production
 
-This is a proof of concept. The local Node server uses a JSON file; the hosted demo uses separate D1 tables with migrations and optimistic concurrency checks. It has no sign-in/RBAC, independently deployed app services, production-grade audit retention, backup/restore workflow, or verified production deletion policy. The “delete” action clears only that app's records in the demo. Do not use real business data.
-
+This is a proof of concept. The local Node server uses a JSON file; the hosted platform uses separate D1 tables with migrations and optimistic concurrency checks. The app Workers still need their Cloudflare builds configured and live endpoints tested. There is no user-level RBAC, production-grade audit retention, backup/restore workflow, or verified production deletion policy. The “Delete data” action clears only that app's records; removing a Worker is a separate deployment operation. Do not use real business data.
