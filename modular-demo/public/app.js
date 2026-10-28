@@ -20,7 +20,7 @@ function render(){
  if(current){
   if(!labels[current]){ $('#workspace').textContent='App not found.'; return; }
   $('#app-title').textContent=labels[current];
-  $('#app-nav').innerHTML=Object.keys(labels).map(id=>`<a class="app-nav-link ${id===current?'current':''} ${s.modules[id]?.status==='active'?'':'unavailable'}" href="/apps/${id}">${labels[id]} <span class="pill ${s.modules[id]?.status||'deleted'}">${s.modules[id]?.status||'deleted'}</span></a>`).join('');
+  document.title=`${labels[current]} App Workspace`;
   const status=s.modules[current]?.status||'deleted';
   if(status!=='active'){$('#status-message').innerHTML=`<div class="notice"><b>${labels[current]} is ${status}.</b> Ask Super Admin to activate it before using this app. Other app workspaces are available separately.</div>`;$('#workspace').innerHTML='';return;}
   $('#status-message').innerHTML='';

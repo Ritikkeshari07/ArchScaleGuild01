@@ -5,7 +5,7 @@
 ## Completed
 
 - Created separate Contacts, Products, Orders, and Tasks modules with manifests and a shared platform registry.
-- Added a separate browser workspace and URL for each app, plus a distinct Super Admin page. The four apps continue to share the platform API and local demo database for their inter-app links and saved snapshots.
+- Added a separate browser workspace and URL for each app, plus a distinct Super Admin page. App pages have no direct app-switch navigation; the apps interconnect through record selectors and saved snapshots on the shared platform API and local demo database.
 - Implemented optional links between every pair of apps, with saved display snapshots so deleting one app's records does not erase the related values in other apps.
 - Orders retain customer/product/task text, price, quantity, and total; Tasks retain contact, product, and order references.
 - Added Super Admin demo controls to activate, deactivate, retire, and delete one module's records. Deactivation and retirement retain records; deletion clears only that module's own collection.

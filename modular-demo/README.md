@@ -41,6 +41,7 @@ Run the automated checks with `npm test`.
 - Deactivate/retire disables the selected app while preserving its records.
 - Delete clears only the selected app's owned collection. Other apps' saved snapshots remain.
 - Each app has its own browser workspace URL while sharing the platform API and local database.
+- App workspaces do not include links or tabs to switch directly to another app. Open workspaces from the launcher or their URLs; inter-app connections are made through record selectors and saved references.
 - Super Admin UI actions are intentionally unauthenticated for the localhost demo. This is not production security.
 
 ## Reference and scope
