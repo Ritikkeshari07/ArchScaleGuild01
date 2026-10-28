@@ -60,6 +60,8 @@ Enter the configured demo password in the in-page sign-in form. Authentication a
 
 ## Verification
 
+**Current hosted checkpoint (28 Oct 2026):** branch head `7e96b949c22c84fa6c5efcc2a53293fa5de0d045` (`Preserve unsaved drafts during shared data refresh`). Cloudflare reports successful builds for the shared platform and all four app Workers from this commit. The platform Worker has the `DEMO_PASSWORD` secret binding configured; its value was not read. A read-only D1 check shows all four apps active/deployed and one linked sample record in each app-owned table.
+
 Use the [live acceptance checklist](LIVE-ACCEPTANCE-CHECKLIST.md) to run and record the remaining signed-in record-link and Super Admin checks.
 
 - `npm test`: 7 passed, 0 failed.
