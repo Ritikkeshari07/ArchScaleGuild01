@@ -99,18 +99,16 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     if (url.pathname === '/health') return json(200, { ok: true, service: 'four-apps-demo' });
-    if (!env.DEMO_PASSWORD) return json(503, { error: 'Demo access is not configured yet.' });
-    if (!basicAuthOk(request, env.DEMO_PASSWORD)) {
-      return new Response('A manager demo password is required.', {
-        status: 401,
-        headers: { 'www-authenticate': 'Basic realm="Four Apps Demo", charset="UTF-8"', 'cache-control': 'no-store' }
-      });
-    }
     if (url.pathname.startsWith('/api/')) {
+      if (!env.DEMO_PASSWORD) return json(503, { error: 'Demo access is not configured yet.' });
+      if (!basicAuthOk(request, env.DEMO_PASSWORD)) {
+        return json(401, { error: 'A manager demo password is required.' }, {
+          'www-authenticate': 'Basic realm="Four Apps Demo", charset="UTF-8"'
+        });
+      }
       try { return await handleApi(request, env); }
       catch (error) { return json(error.status || 500, { error: error.message || 'Server error.' }); }
     }
     return env.ASSETS.fetch(request);
   }
 };
-
