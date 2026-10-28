@@ -58,6 +58,10 @@ This remains a manager-review demo, not production: the password gate is shared 
 
 The modular addon/folder and manifest concept was informed by [ProjectMeru/sumeru](https://github.com/ProjectMeru/sumeru) and [ProjectMeru/sumeru_addons](https://github.com/ProjectMeru/sumeru_addons). This prototype is original implementation code, not copied Sumeru source. Sumeru is pre-alpha and its sample Sales addon declares dependencies on Products, Contacts, and CRM, so it is an architecture reference rather than proof of safe removal. See its [Apache-2.0 license](https://github.com/ProjectMeru/sumeru_addons/blob/main/LICENSE).
 
+## Live acceptance check
+
+Use [LIVE-ACCEPTANCE-CHECKLIST.md](LIVE-ACCEPTANCE-CHECKLIST.md) for step-by-step hosted tests covering four-way links, deactivate/retire, delete-data isolation, and demo reset.
+
 ## Known gaps before production
 
 This is a proof of concept. The local Node server uses a JSON file; the hosted platform uses separate D1 tables with migrations and optimistic concurrency checks. The four app Workers and shared platform have been deployed through Cloudflare Workers Builds, and each app's live `/health` endpoint has been verified. The app-to-platform route has been checked with an invalid-password response; a valid-password record exchange and Super Admin action still need manual end-to-end verification. There is no user-level RBAC, production-grade audit retention, backup/restore workflow, or production deletion policy. The **Load demo story** reset restores sample data and active app statuses while preserving deployed Worker metadata. The “Delete data” action clears only that app's records; removing a Worker is a separate deployment operation, and deleting the repository is separate from both. Do not use real business data.
