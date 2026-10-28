@@ -18,21 +18,21 @@ Open the address printed in the command window (normally http://127.0.0.1:3000).
 - Tasks: `<server-address>/apps/tasks`
 - Super Admin: `<server-address>/admin`
 
-Each app has its own page, URL, and backend module. The apps share the local platform API and JSON database so each app can link to the other three. Click **Load demo story** on the home page or Super Admin page for ABC Studio → Marble Sample (₹500) → ORD-001 (4 items, ₹2,000) → Confirm delivery. The sample records include links across all four apps. Use Super Admin controls to deactivate, retire, reactivate, or delete one app's records. Data is stored only in `data/store.json`.
+Each app has its own page, URL, and backend module. The apps share the platform API so each app can link to the other three. Click **Load demo story** on the home page or Super Admin page for ABC Studio → Marble Sample (₹500) → ORD-001 (4 items, ₹2,000) → Confirm delivery. The sample records include links across all four apps. Use Super Admin controls to deactivate, retire, reactivate, or delete one app's records. The local Node server stores data in `data/store.json`; the hosted Cloudflare demo stores data in app-owned D1 tables.
 
 Run the automated checks with `npm test`.
 
 ## Hosted preview (demo only)
 
-The Cloudflare Worker entry point (`src/worker.mjs`) serves the same app workspaces and uses the D1 binding configured in `wrangler.jsonc`. The D1 migration stores the demo state persistently and uses a revision check to reject simultaneous stale writes. The hosted preview requires a `DEMO_PASSWORD` secret and fails closed until it is configured.
+The Cloudflare Worker entry point (`src/worker.mjs`) serves the same app workspaces and uses the D1 binding configured in `wrangler.jsonc`. Migration `0002_app_owned_tables.sql` moves hosted demo records into separate Contacts, Products, Orders, and Tasks tables while preserving IDs and display snapshots. A revision check rejects simultaneous stale writes. The hosted preview requires a `DEMO_PASSWORD` secret and fails closed until it is configured.
 
 To preview locally with Cloudflare, run `npm run cf:dev` after authenticating Wrangler and creating `.dev.vars` with a `DEMO_PASSWORD` value. Apply the migration with `npx wrangler d1 migrations apply archscale-four-apps-demo --local`. Deploy with `npm run cf:deploy` after applying it remotely with `npx wrangler d1 migrations apply archscale-four-apps-demo --remote` and adding the `DEMO_PASSWORD` secret in Cloudflare. For automated Git deployments, connect this Worker to the `modular-four-apps-demo` GitHub branch through Workers Builds.
 
-This is still a manager-review demo, not production: the password gate is shared access, not user accounts or RBAC, and the app's collections are kept as one compact serialized state record to preserve the current proof-of-concept behavior. Use sample data only. Before production, move to normalized per-app tables, real authentication/authorization, reviewed migrations, backups, and retained audit records.
+This is still a manager-review demo, not production: the password gate is shared access, not user accounts or RBAC. The hosted Worker and UI are still one deployment; the D1 tables establish separate data ownership but do not yet let each app deploy or be removed independently. The app tables deliberately avoid cross-app foreign keys so removing one app's records does not cascade into another app. Use sample data only. Before production, separate app deployments behind a stable platform API, add real authentication/authorization, review migrations, backups, and audit retention.
 
 ## Folder structure
 
-- `src/platform/` — module registry, JSON database adapter, validation, and lifecycle policy.
+- `src/platform/` — module registry, local JSON adapter, Cloudflare D1 adapter, validation, and lifecycle policy.
 - `src/apps/{contacts,products,orders,tasks}/` — independent app logic and manifests.
 - `public/apps/{contacts,products,orders,tasks}/` — separate app entry pages, with shared styling and client helpers.
 - `public/admin/` — Super Admin registry and lifecycle controls.
@@ -58,4 +58,5 @@ The modular addon/folder and manifest concept was informed by [ProjectMeru/sumer
 
 ## Known gaps before production
 
-This is a fast, local proof of concept. It uses a JSON file, has no sign-in/RBAC, does not implement schema migrations or true physical per-module database schemas, and does not include production-grade audit retention or concurrency control. The “delete” action removes that module's records from the local demo store to demonstrate the dependency behavior. Do not use real business data.
+This is a proof of concept. The local Node server uses a JSON file; the hosted demo uses separate D1 tables with migrations and optimistic concurrency checks. It has no sign-in/RBAC, independently deployed app services, production-grade audit retention, backup/restore workflow, or verified production deletion policy. The “delete” action clears only that app's records in the demo. Do not use real business data.
+
