@@ -8,6 +8,7 @@
 - Each app calls the shared platform API through a private Cloudflare Service binding. Cross-app record references and saved snapshots remain available across workspaces.
 - Super Admin demo controls support activate, deactivate, retire, and delete of app-owned records. Deactivate/retire preserve records; delete clears only the selected app's records.
 - Hosted D1 uses app-owned tables and a registry that tracks each app's deployment separately. Removing an app Worker does not delete shared D1 or another app's data.
+- The **Load demo story** reset restores the sample data and active app statuses while preserving each Worker's deployment name, URL, source path, and deployed status.
 - GitHub push builds are configured on `modular-four-apps-demo` with repository root `/modular-demo`.
 
 ## Deletion boundaries
@@ -31,7 +32,7 @@ Enter the configured demo password in the in-page sign-in form. Authentication a
 
 ## Verification
 
-- `npm test`: 6 passed, 0 failed.
+- `npm test`: 7 passed, 0 failed.
 - All four independent build packages generated locally.
 - Cloudflare Workers Builds for Contacts, Products, Orders, Tasks, and the shared platform completed successfully from the GitHub branch.
 - Each app `/health` endpoint returned its own app identifier. Shared platform deployed successfully and the D1 registry reports all four apps active and deployed.
