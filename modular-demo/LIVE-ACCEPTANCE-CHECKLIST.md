@@ -44,6 +44,10 @@ This clears the selected app's entire record collection. Only do this with demo 
 
 Worker removal and GitHub repository deletion are not Super Admin demo actions and are not part of this live test. Do not delete a Worker, D1 database, or GitHub repository to test lifecycle behavior. Those operations are separate from deleting one app's records and require a separately reviewed recovery/cleanup plan.
 
+## User-reported live outcome (28 Oct 2026)
+
+The user reported that the signed-in hosted check passed for cross-app links and lifecycle actions. Individual checklist rows and screenshots were not separately recorded; use the steps below to reproduce or document them in detail.
+
 ## Record the result
 
 - Workspaces and dashboard navigation: Pass / Fail
