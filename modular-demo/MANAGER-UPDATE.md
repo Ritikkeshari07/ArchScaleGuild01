@@ -16,7 +16,7 @@
 
 ## Verification
 
-Automated checks: deletion/interdependency and app-build checks are being run before deployment. The D1 migration was exercised against a local SQLite copy and applied to the hosted demo; all four app tables and the audit entry were verified to contain the existing example data. The shared platform Worker build succeeded, and its health route responded. The current live demo still has one platform Worker; the four app Workers require separate Cloudflare build connections and endpoint verification.
+Automated checks: 6 passed, 0 failed, including app build packaging and deletion/interdependency cases. Migration 0003 was exercised on SQLite and applied to hosted D1; original sample records were preserved. Four app-specific Workers and their Cloudflare Git builds are configured; initial deployment and endpoint checks are in progress.
 
 ## Remaining before production
 
