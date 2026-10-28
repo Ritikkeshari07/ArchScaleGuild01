@@ -33,6 +33,12 @@ flowchart LR
 - The **Load demo story** reset restores the sample data and active app statuses while preserving each Worker's deployment name, URL, source path, and deployed status.
 - GitHub push builds are configured on `modular-four-apps-demo` with repository root `/modular-demo`.
 
+## Record changes vs. code changes
+
+- **Record changes:** app form submissions go through the app Worker’s private service binding to the shared platform API and are written to the app-owned D1 table. Other apps read them from the same platform API when they load or refresh.
+- **Code changes:** pushing source to `modular-four-apps-demo` triggers the configured Worker Builds. A code push does not itself modify business records; schema changes need an explicit migration.
+- The demo persists shared data, but open screens do not receive automatic live refresh events yet; reload to see changes created in another app.
+
 ## Deletion boundaries
 
 - **Delete app records:** the demo Super Admin clears records owned by the selected app; other apps and saved snapshots remain.
