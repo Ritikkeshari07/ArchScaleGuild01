@@ -1,4 +1,5 @@
 node_modules/
+.dev.vars
 data/store.json
 .DS_Store
 Thumbs.db
