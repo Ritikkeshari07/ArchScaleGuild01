@@ -1,4 +1,20 @@
-const { definitions } = require('./registry');
+const { definitions, initialState } = require('./registry');
+function resetDemoState(previous) {
+  const state = initialState();
+  for (const definition of definitions) {
+    const deployed = previous.modules?.[definition.id];
+    if (!deployed) continue;
+    state.modules[definition.id] = {
+      ...state.modules[definition.id],
+      deploymentMode: deployed.deploymentMode,
+      workerName: deployed.workerName,
+      repositoryPath: deployed.repositoryPath,
+      deploymentUrl: deployed.deploymentUrl,
+      deploymentStatus: deployed.deploymentStatus
+    };
+  }
+  return state;
+}
 function transition(state, id, action) {
   const definition = definitions.find(x => x.id === id);
   if (!definition) throw new Error('Unknown app.');
@@ -19,6 +35,6 @@ function assertActive(state,id) {
   const status = state.modules[id]?.status;
   if (status !== 'active') throw new Error(`${definition.name} is ${status || 'unavailable'}. Activate it to use its app.`);
 }
-module.exports = { transition, assertActive };
+module.exports = { transition, assertActive, resetDemoState };
 
 

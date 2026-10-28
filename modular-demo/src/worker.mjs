@@ -6,8 +6,8 @@ import orders from './apps/orders/index.js';
 import tasks from './apps/tasks/index.js';
 import { readState, writeState } from './platform/d1-store.mjs';
 
-const { definitions, initialState } = registry;
-const { transition, assertActive } = lifecycle;
+const { definitions } = registry;
+const { transition, assertActive, resetDemoState } = lifecycle;
 const apps = { contacts, products, orders, tasks };
 
 function json(status, body, extraHeaders = {}) {
@@ -49,7 +49,7 @@ async function handleApi(request, env) {
 
   if (request.method === 'POST' && url.pathname === '/api/demo/reset') {
     const previous = await readState(env.DB);
-    const state = initialState();
+    const state = resetDemoState(previous);
     Object.defineProperty(state, '__revision', { value: previous.__revision, writable: true, enumerable: false });
     const contact = apps.contacts.create({ name: 'ABC Studio', organization: 'ABC Studio', city: 'Mumbai', productName: 'Marble Sample', orderRef: 'ORD-001', taskName: 'Confirm delivery' }, state);
     const product = apps.products.create({ name: 'Marble Sample', sku: 'MAR-001', category: 'Samples', unit: 'each', price: 500, contactId: contact.id, orderRef: 'ORD-001', taskName: 'Confirm delivery' }, state);
@@ -110,3 +110,4 @@ export default {
     return env.ASSETS.fetch(request);
   }
 };
+

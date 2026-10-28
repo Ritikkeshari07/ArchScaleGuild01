@@ -1,7 +1,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const { initialState } = require('../src/platform/registry');
-const { transition, assertActive } = require('../src/platform/lifecycle');
+const { transition, assertActive, resetDemoState } = require('../src/platform/lifecycle');
 const contacts = require('../src/apps/contacts');
 const products = require('../src/apps/products');
 const orders = require('../src/apps/orders');
@@ -55,6 +55,23 @@ test('deactivate and retire preserve owned records; delete only clears the selec
   assert.equal(s.contacts.length,0);
   assert.equal(s.products.length,0);
   assert.throws(()=>transition(s,'unknown','delete'),/Unknown app/);
+});
+
+test('demo reset preserves deployed Worker metadata while restoring app lifecycle defaults', () => {
+  const previous = initialState();
+  previous.modules.products.deploymentStatus = 'deployed';
+  previous.modules.products.deploymentUrl = 'https://products.example.test';
+  previous.modules.products.workerName = 'products-worker';
+  previous.modules.products.repositoryPath = 'apps/products';
+  transition(previous, 'products', 'deactivate');
+
+  const reset = resetDemoState(previous);
+  assert.equal(reset.modules.products.status, 'active');
+  assert.equal(reset.modules.products.deploymentStatus, 'deployed');
+  assert.equal(reset.modules.products.deploymentUrl, 'https://products.example.test');
+  assert.equal(reset.modules.products.workerName, 'products-worker');
+  assert.equal(reset.modules.products.repositoryPath, 'apps/products');
+  assert.deepEqual(reset.products, []);
 });
 
 test('contact and task removal do not remove other apps or saved customer snapshots', () => {
@@ -113,4 +130,5 @@ test('every app can connect to each of the other three and keep snapshots after 
   assert.equal(s.orders.length,0);
   assert.equal(s.tasks.length,0);
 });
+
 
