@@ -57,3 +57,23 @@ test('deactivate and retire preserve owned records; delete only clears the selec
   assert.throws(()=>transition(s,'unknown','delete'),/Unknown app/);
 });
 
+test('contact and task removal do not remove other apps or saved customer snapshots', () => {
+  const s=initialState();
+  const c=contacts.create({name:'ABC Studio'},s);
+  const p=products.create({name:'Marble Sample',sku:'M-1',price:500},s);
+  const o=orders.create({orderNo:'ORD-001',customerId:c.id,productId:p.id,quantity:4},s);
+  tasks.create({name:'Confirm delivery',assignedTo:'Alex',orderId:o.id},s);
+  transition(s,'contacts','delete');
+  assert.equal(s.orders[0].customerName,'ABC Studio');
+  assert.equal(s.orders[0].productName,'Marble Sample');
+  assert.equal(s.products.length,1);
+  assert.equal(s.tasks[0].orderRef,'ORD-001');
+  transition(s,'tasks','delete');
+  assert.equal(s.tasks.length,0);
+  assert.equal(s.orders.length,1);
+  assert.equal(s.products.length,1);
+  const manual=orders.create({orderNo:'ORD-002',customerName:'Manual Studio',productName:'Manual Item',unitPrice:10,quantity:1},s);
+  assert.equal(manual.total,10);
+});
+
+
