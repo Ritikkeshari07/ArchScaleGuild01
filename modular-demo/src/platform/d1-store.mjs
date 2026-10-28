@@ -17,7 +17,7 @@ function attachRevision(state, revision) {
 export async function readState(db) {
   const [meta, modules, contacts, products, orders, tasks, audit] = await Promise.all([
     db.prepare('SELECT revision FROM platform_meta WHERE id = 1').first(),
-    rows(db, 'SELECT app_id, status, updated_at, deployment_mode, worker_name, repository_path FROM app_registry'),
+    rows(db, 'SELECT app_id, status, updated_at, deployment_mode, worker_name, repository_path, deployment_url, deployment_status FROM app_registry'),
     rows(db, 'SELECT * FROM contacts ORDER BY created_at, id'),
     rows(db, 'SELECT * FROM products ORDER BY created_at, id'),
     rows(db, 'SELECT * FROM orders ORDER BY created_at, id'),
@@ -33,7 +33,9 @@ export async function readState(db) {
       updatedAt: row.updated_at,
       deploymentMode: row.deployment_mode,
       workerName: row.worker_name,
-      repositoryPath: row.repository_path
+      repositoryPath: row.repository_path,
+      deploymentUrl: row.deployment_url,
+      deploymentStatus: row.deployment_status
     };
   }
   state.contacts = contacts.map(row => ({
@@ -79,10 +81,12 @@ export async function writeState(db, state) {
   const moduleRows = definitions.map(definition => {
     const module = state.modules[definition.id] || {};
     return [definition.id, module.status || 'active', module.updatedAt || new Date().toISOString(),
-      module.deploymentMode || 'shared-worker', module.workerName || 'archscaleguild01',
-      module.repositoryPath || definition.repositoryPath || `modular-demo/src/apps/${definition.id}`];
+      module.deploymentMode || 'independent-worker', module.workerName || definition.workerName,
+      module.repositoryPath || definition.repositoryPath,
+      module.deploymentUrl || definition.deploymentUrl,
+      module.deploymentStatus || 'planned'];
   });
-  statements.push(...replaceTable(db, 'app_registry', ['app_id', 'status', 'updated_at', 'deployment_mode', 'worker_name', 'repository_path'], moduleRows, writeId));
+  statements.push(...replaceTable(db, 'app_registry', ['app_id', 'status', 'updated_at', 'deployment_mode', 'worker_name', 'repository_path', 'deployment_url', 'deployment_status'], moduleRows, writeId));
   statements.push(...replaceTable(db, 'contacts',
     ['id', 'name', 'organization', 'email', 'phone', 'city', 'product_id', 'product_name', 'order_id', 'order_ref', 'task_id', 'task_name', 'created_at'],
     state.contacts.map(row => [row.id, row.name, text(row.organization), text(row.email), text(row.phone), text(row.city), nullable(row.productId), text(row.productName), nullable(row.orderId), text(row.orderRef), nullable(row.taskId), text(row.taskName), row.createdAt]), writeId));
@@ -106,4 +110,3 @@ export async function writeState(db, state) {
   }
   state.__revision = revision + 1;
 }
-
