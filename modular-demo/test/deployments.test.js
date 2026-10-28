@@ -25,6 +25,7 @@ test('each app builds as its own Worker with a private platform service binding'
     assert.match(client, /demoAuthorization/);
     assert.match(client, /window\.setInterval\(\(\s*\)=>pollSharedState/);
     assert.match(client, /document\.hidden/);
+    assert.match(client, /function hasUnsavedFormDraft/);
     assert.match(client, /document\.activeElement\?\.closest\('#create'\)/);
     const platform = await readFile(path.join(root, 'src', 'worker.mjs'), 'utf8');
     assert.doesNotMatch(platform, /www-authenticate/);
