@@ -51,3 +51,10 @@ The modular addon/folder and manifest concept was informed by [ProjectMeru/sumer
 ## Known gaps before production
 
 This is a fast, local proof of concept. It uses a JSON file, has no sign-in/RBAC, does not implement schema migrations or true physical per-module database schemas, and does not include production-grade audit retention or concurrency control. The “delete” action removes that module's records from the local demo store to demonstrate the dependency behavior. Do not use real business data.
+
+
+## Hosted preview (demo only)
+
+For a quick hosted walkthrough, connect this repository to a Node.js web service such as Render. Set the service root directory to `modular-demo`, the build command to `npm install`, the start command to `npm start`, and `HOST` to `0.0.0.0`. The host supplies `PORT` automatically. After deployment, share the generated HTTPS URL with the reviewer.
+
+This preview is not production-ready: it has no login/RBAC and stores records in `data/store.json`. A hosted free instance may lose that file when it restarts, redeploys, or idles. Use sample data only. For persistent data, connect managed PostgreSQL; before production, add authentication, authorization, migrations, backups, and an audit trail before exposing Super Admin operations.
