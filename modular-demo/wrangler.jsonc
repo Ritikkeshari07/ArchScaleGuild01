@@ -1,6 +1,6 @@
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "archscale-four-apps-demo",
+  "name": "archscaleguild01",
   "main": "src/worker.mjs",
   "compatibility_date": "2026-10-28",
   "compatibility_flags": ["nodejs_compat"],
@@ -19,3 +19,4 @@
     }
   ]
 }
+
