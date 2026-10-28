@@ -8,3 +8,6 @@ if errorlevel 1 (
 )
 cd /d "%~dp0"
 node src/server.js
+echo.
+echo Keep this window open while using the demo. The server address is printed above.
+pause

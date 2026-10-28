@@ -13,7 +13,7 @@
 
 ## Verification
 
-Automated checks: **4 passed, 0 failed** using Node's built-in test runner. JavaScript syntax checks pass. The separate app pages are implemented at `/apps/contacts`, `/apps/products`, `/apps/orders`, and `/apps/tasks`; `/admin` hosts Super Admin controls. Restart the local demo server to load these updated pages. Manual lifecycle clicks and the delete-data confirmation flow remain to be walked through in the browser.
+Automated checks: **4 passed, 0 failed** using Node's built-in test runner. JavaScript syntax checks pass. The separate app pages are implemented at `/apps/contacts`, `/apps/products`, `/apps/orders`, and `/apps/tasks`; `/admin` hosts Super Admin controls. Startup now tries the next available port if 3000 is busy and prints the exact local URL. Manual lifecycle clicks and the delete-data confirmation flow remain to be walked through in the browser.
 
 ## Remaining before production
 

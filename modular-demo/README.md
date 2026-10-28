@@ -10,13 +10,13 @@ Requirements: Node.js 18 or newer. From this folder:
 npm start
 ```
 
-Open http://127.0.0.1:3000. The home page launches four separate app workspaces:
+Open the address printed in the command window (normally http://127.0.0.1:3000). If that port is already in use, the server tries the next available port automatically. The home page launches four separate app workspaces:
 
-- Contacts: http://127.0.0.1:3000/apps/contacts
-- Products: http://127.0.0.1:3000/apps/products
-- Orders: http://127.0.0.1:3000/apps/orders
-- Tasks: http://127.0.0.1:3000/apps/tasks
-- Super Admin: http://127.0.0.1:3000/admin
+- Contacts: `<server-address>/apps/contacts`
+- Products: `<server-address>/apps/products`
+- Orders: `<server-address>/apps/orders`
+- Tasks: `<server-address>/apps/tasks`
+- Super Admin: `<server-address>/admin`
 
 Each app has its own page, URL, and backend module. The apps share the local platform API and JSON database so Orders can use Contacts and Products, and Tasks can reference Orders. Click **Load demo story** on the home page or Super Admin page for ABC Studio → Marble Sample (₹500) → ORD-001 (4 items, ₹2,000). Use Super Admin controls to deactivate, retire, reactivate, or delete one app's records. Data is stored only in `data/store.json`.
 

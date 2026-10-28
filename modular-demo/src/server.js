@@ -57,8 +57,25 @@ async function route(req,res) {
   send(res,404,{error:'Route not found'});
 }
 const server=http.createServer((req,res)=>route(req,res).catch(e=>send(res,500,{error:e.message})));
-const port=Number(process.env.PORT||3000);
-server.listen(port,'127.0.0.1',()=>console.log(`Four-app demo running at http://127.0.0.1:${port}`));
+const preferredPort=Number(process.env.PORT||3000);
+function listen(port){
+  const onError=error=>{
+    server.removeListener('error',onError);
+    if(error.code==='EADDRINUSE'&&port<preferredPort+20){
+      console.log(`Port ${port} is busy; trying ${port+1}.`);
+      listen(port+1);
+      return;
+    }
+    console.error(`Could not start the demo server on port ${port}: ${error.message}`);
+    process.exitCode=1;
+  };
+  server.once('error',onError);
+  server.listen(port,'127.0.0.1',()=>{
+    server.removeListener('error',onError);
+    console.log(`Four-app demo running at http://127.0.0.1:${server.address().port}`);
+  });
+}
+listen(preferredPort);
 module.exports={server};
 
 
