@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "node --test",
+    "build:apps": "npm run build:contacts && npm run build:products && npm run build:orders && npm run build:tasks",
     "cf:dev": "npx wrangler dev",
     "cf:deploy": "npx wrangler deploy",
     "build:contacts": "node scripts/build-app.mjs contacts",
