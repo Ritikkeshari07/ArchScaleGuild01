@@ -22,5 +22,7 @@ test('each app builds as its own Worker with a private platform service binding'
     assert.match(worker, /env\.ASSETS\.fetch/);
     assert.match(client, /demo-login-form/);
     assert.match(client, /demoAuthorization/);
+    const platform = await readFile(path.join(root, 'src', 'worker.mjs'), 'utf8');
+    assert.doesNotMatch(platform, /www-authenticate/);
   }
 });
