@@ -56,7 +56,7 @@ This remains a manager-review demo, not production: the password gate is shared 
 
 - **Record changes:** a user saves a Contact, Product, Order, or Task in its app; that app Worker forwards the request through its private service binding to the platform API, which writes the app-owned D1 table. The other apps can read the shared record and its saved link snapshots when they load or refresh.
 - **Code changes:** a source commit to `modular-four-apps-demo` triggers the configured Cloudflare Worker Builds and deploys the affected Worker packages. A code push does not itself change business records; database structure changes need an explicit migration.
-- The demo uses shared persisted data, but does not yet push live refresh events to screens that are already open. Those screens need a reload to see new records.
+- While a signed-in tab is visible, the demo polls shared state every five seconds and updates the app tables and selectors automatically. Polling pauses for hidden tabs and defers rerendering while a create form is being edited. This is lightweight polling, not push notifications.
 
 ## Folder structure
 
