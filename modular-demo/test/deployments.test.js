@@ -18,5 +18,6 @@ test('each app builds as its own Worker with a private platform service binding'
     assert.deepEqual(config.services, [{ binding: 'PLATFORM', service: 'archscaleguild01' }]);
     assert.match(html, new RegExp(`ARCHSCALE_APP_ID="${appId}"`));
     assert.match(worker, /env\.PLATFORM\.fetch/);
+    assert.match(worker, /platform\.internal\/api\/state/);
   }
 });
