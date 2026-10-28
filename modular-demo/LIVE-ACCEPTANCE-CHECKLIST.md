@@ -14,7 +14,7 @@ Use a unique prefix such as `QA-20261028` to distinguish the test records.
 2. In Products, create `QA-20261028 Sample`, SKU `QA-20261028-01`, price ₹250. Link the QA contact, ORD-001, and Confirm delivery task.
 3. In Orders, create `QA-20261028-ORD`, link the QA contact and QA product, set quantity to 2, and link Confirm delivery. Confirm the saved total is ₹500.
 4. In Tasks, create `QA-20261028 Follow-up` and link the QA contact, QA product, and QA order.
-5. Open each of the four workspaces. Confirm the related record names/references are visible and match the records you created.
+5. Leave each of the four workspaces open. Within five seconds, confirm the related record names/references appear and match the records you created.
 
 **Pass:** all four apps can save links to the other three, and each workspace shows the linked names/references from shared data.
 
