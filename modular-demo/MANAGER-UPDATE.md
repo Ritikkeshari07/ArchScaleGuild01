@@ -18,7 +18,7 @@
 - [Tasks](https://archscale-tasks.keshariritik101.workers.dev/)
 - [Super Admin / dashboard](https://archscaleguild01.keshariritik101.workers.dev/)
 
-The demo password is required when opening a workspace. Use sample records only.
+Enter the configured demo password in the in-page sign-in form. Authentication applies to that browser tab. Use sample records only.
 
 ## Verification
 
@@ -26,7 +26,7 @@ The demo password is required when opening a workspace. Use sample records only.
 - All four independent build packages generated locally.
 - Cloudflare Workers Builds for Contacts, Products, Orders, Tasks, and the shared platform completed successfully from the GitHub branch.
 - Each app `/health` endpoint returned its own app identifier. Shared platform deployed successfully and the D1 registry reports all four apps active and deployed.
-- Each app Worker is configured to pass the shared platform sign-in challenge through. Complete a manual browser sign-in check with the configured demo password.
+- Each app and the Super Admin UI show an in-page sign-in form; the password is sent to the shared API in an Authorization header and remains in memory for that tab. Enter the configured demo password to complete a manual live check.
 
 ## Next priorities
 
