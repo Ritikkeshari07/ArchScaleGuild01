@@ -3,6 +3,19 @@
   "version": "1.0.0",
   "private": true,
   "description": "Four-app modularity and removal-safety demonstration",
-  "scripts": { "start": "node src/server.js", "test": "node --test", "cf:dev": "npx wrangler dev", "cf:deploy": "npx wrangler deploy" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "cf:dev": "npx wrangler dev",
+    "cf:deploy": "npx wrangler deploy",
+    "build:contacts": "node scripts/build-app.mjs contacts",
+    "build:products": "node scripts/build-app.mjs products",
+    "build:orders": "node scripts/build-app.mjs orders",
+    "build:tasks": "node scripts/build-app.mjs tasks",
+    "cf:deploy:contacts": "npm run build:contacts && npx wrangler deploy --config deployables/contacts/wrangler.jsonc",
+    "cf:deploy:products": "npm run build:products && npx wrangler deploy --config deployables/products/wrangler.jsonc",
+    "cf:deploy:orders": "npm run build:orders && npx wrangler deploy --config deployables/orders/wrangler.jsonc",
+    "cf:deploy:tasks": "npm run build:tasks && npx wrangler deploy --config deployables/tasks/wrangler.jsonc"
+  },
   "engines": { "node": ">=18" }
 }
