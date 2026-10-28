@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "private": true,
   "description": "Four-app modularity and removal-safety demonstration",
-  "scripts": { "start": "node src/server.js", "test": "node --test" },
+  "scripts": { "start": "node src/server.js", "test": "node --test", "cf:dev": "npx wrangler dev", "cf:deploy": "npx wrangler deploy" },
   "engines": { "node": ">=18" }
 }
