@@ -1,0 +1,9 @@
+{
+  "id": "tasks",
+  "name": "Tasks",
+  "version": "0.1.0",
+  "summary": "Owns follow-ups and order-reference snapshots.",
+  "dependsOn": ["platform"],
+  "optionalIntegrations": ["contacts", "products", "orders"],
+  "status": "installable-demo"
+}

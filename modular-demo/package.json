@@ -1,0 +1,8 @@
+{
+  "name": "modular-four-apps-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Four-app modularity and removal-safety demonstration",
+  "scripts": { "start": "node src/server.js", "test": "node --test" },
+  "engines": { "node": ">=18" }
+}
