@@ -1,7 +1,7 @@
 const labels={contacts:'Contacts',products:'Products',orders:'Orders',tasks:'Tasks'};
 const pathName=location.pathname.replace(/\/$/,'');
 const isAdmin=pathName==='/admin';
-const current=pathName.startsWith('/apps/')?pathName.split('/')[2]:null;
+const current=window.ARCHSCALE_APP_ID||(pathName.startsWith('/apps/')?pathName.split('/')[2]:null);
 let model;
 const $=s=>document.querySelector(s);
 async function api(url,options={}){const r=await fetch(url,{headers:{'content-type':'application/json'},...options});const data=await r.json();if(!r.ok)throw new Error(data.error||'Request failed');return data;}
@@ -11,10 +11,10 @@ function field(label,name,type='text',required=false,extra=''){return `<label>${
 function render(){
  const s=model.state;
  if(!current&&!isAdmin){
-  $('#app-cards').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted';return `<a class="app-card ${status}" href="/apps/${d.id}"><div><span class="eyebrow">SEPARATE APP</span><h3>${d.name}</h3><p>${d.description}</p></div><span class="pill ${status}">${status}</span><b class="open-app">Open ${d.name} →</b></a>`}).join('');
+  $('#app-cards').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<a class="app-card ${status}" href="${esc(url)}"><div><span class="eyebrow">${esc(mod.deploymentMode||'APP')}</span><h3>${d.name}</h3><p>${d.description}</p><small>${esc(mod.workerName||'')} · deployment ${esc(mod.deploymentStatus||'planned')}</small></div><span class="pill ${status}">${status}</span><b class="open-app">Open ${d.name} →</b></a>`}).join('');
  }
  if(isAdmin){
-  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted';return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><a class="small-link" href="/apps/${d.id}">Open app workspace →</a></div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'?'disabled':''}>Delete data</button></div></article>`}).join('');
+  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><small>Worker: ${esc(mod.workerName||'')} · deployment: ${esc(mod.deploymentStatus||'planned')}</small><a class="small-link" href="${esc(url)}">Open app workspace →</a></div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'?'disabled':''}>Delete data</button></div></article>`}).join('');
   $('#audit').innerHTML=s.audit.slice(0,8).map(x=>`<div class="auditrow"><span class="pill">${esc(x.action)}</span><b>${esc(labels[x.moduleId]||x.moduleId)}</b><span>${esc(x.details)}</span><time>${new Date(x.at).toLocaleTimeString()}</time></div>`).join('')||'<p class="muted">No actions yet.</p>';
  }
  if(current){
