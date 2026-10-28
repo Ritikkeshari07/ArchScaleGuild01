@@ -60,22 +60,21 @@ Enter the configured demo password in the in-page sign-in form. Authentication a
 
 ## Verification
 
-**Current hosted checkpoint (28 Oct 2026):** branch head `7e96b949c22c84fa6c5efcc2a53293fa5de0d045` (`Preserve unsaved drafts during shared data refresh`). Cloudflare reports successful builds for the shared platform and all four app Workers from this commit. The platform Worker has the `DEMO_PASSWORD` secret binding configured; its value was not read. A read-only D1 check shows all four apps active/deployed and one linked sample record in each app-owned table.
+**Current hosted checkpoint (28 Oct 2026):** Cloudflare reports successful builds for the shared platform and all four app Workers from code commit `7e96b949c22c84fa6c5efcc2a53293fa5de0d045` (`Preserve unsaved drafts during shared data refresh`). The later GitHub branch updates are documentation-only and excluded from Worker builds, so this remains the deployed code version. The platform Worker has the `DEMO_PASSWORD` secret binding configured; its value was not read. A read-only D1 check shows all four apps active/deployed and one linked sample record in each app-owned table.
 
-Use the [live acceptance checklist](LIVE-ACCEPTANCE-CHECKLIST.md) to run and record the remaining signed-in record-link and Super Admin checks.
+The user has now reported that the signed-in hosted check passed for cross-app links and lifecycle actions. The [live acceptance checklist](LIVE-ACCEPTANCE-CHECKLIST.md) remains available to record detailed results or repeat the check.
 
 - `npm test`: 7 passed, 0 failed.
 - All four independent build packages generated locally with the single command `npm run build:apps`.
 - Cloudflare Workers Builds for Contacts, Products, Orders, Tasks, and the shared platform completed successfully from the GitHub branch.
 - Each app `/health` endpoint returned its own app identifier. Shared platform deployed successfully and the D1 registry reports all four apps active and deployed.
-- All four live apps displayed the sign-in flow and returned the shared API's expected in-page rejection for an invalid test password, confirming the app-to-platform service binding path. A valid-password record exchange and Super Admin action check still require a manual live session.
+- All four live apps displayed the sign-in flow and returned the shared API's expected in-page rejection for an invalid test password, confirming the app-to-platform service binding path. The user manually confirmed in the hosted browser that the cross-app links and app lifecycle actions passed; detailed per-step results were not separately logged.
 
 ## Next priorities
 
-1. Do a manual end-to-end check: create a contact, link it to product/order/task records, open the same linked data in the other workspaces, then check Super Admin deactivation and deletion behavior.
-2. Define deployment-level retire/uninstall, backup, and restore policies before adding any Worker or repository deletion control.
-3. Decide whether each app needs its own GitHub repository or whether the current single repository with separate Workers is sufficient for this milestone.
-4. Add real user authentication and RBAC in a later milestone.
+1. Define deployment-level retire/uninstall, backup, and restore policies before adding any Worker or repository deletion control.
+2. Decide whether each app needs its own GitHub repository or whether the current single repository with separate Workers is sufficient for this milestone.
+3. Add real user authentication and RBAC in a later milestone.
 
 ## Run locally
 
