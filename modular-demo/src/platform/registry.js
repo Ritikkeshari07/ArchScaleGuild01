@@ -1,6 +1,3 @@
-const path = require('node:path');
-
-const dataFile = path.join(__dirname, '../../data/store.json');
 const definitions = [
   { id: 'contacts', name: 'Contacts', description: 'People and organizations', collection: 'contacts' },
   { id: 'products', name: 'Products', description: 'Simple product catalogue', collection: 'products' },
@@ -12,4 +9,5 @@ const initialState = () => ({
   contacts: [], products: [], orders: [], tasks: [], audit: []
 });
 
-module.exports = { dataFile, definitions, initialState };
+module.exports = { definitions, initialState };
+
