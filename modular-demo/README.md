@@ -22,6 +22,14 @@ Each app has its own page, URL, and backend module. The apps share the local pla
 
 Run the automated checks with `npm test`.
 
+## Hosted preview (demo only)
+
+The Cloudflare Worker entry point (`src/worker.mjs`) serves the same app workspaces and uses the D1 binding configured in `wrangler.jsonc`. The D1 migration stores the demo state persistently and uses a revision check to reject simultaneous stale writes. The hosted preview requires a `DEMO_PASSWORD` secret and fails closed until it is configured.
+
+To preview locally with Cloudflare, run `npm run cf:dev` after authenticating Wrangler and creating `.dev.vars` with a `DEMO_PASSWORD` value. Apply the migration with `npx wrangler d1 migrations apply archscale-four-apps-demo --local`. Deploy with `npm run cf:deploy` after applying it remotely with `npx wrangler d1 migrations apply archscale-four-apps-demo --remote` and adding the `DEMO_PASSWORD` secret in Cloudflare. For automated Git deployments, connect this Worker to the `modular-four-apps-demo` GitHub branch through Workers Builds.
+
+This is still a manager-review demo, not production: the password gate is shared access, not user accounts or RBAC, and the app's collections are kept as one compact serialized state record to preserve the current proof-of-concept behavior. Use sample data only. Before production, move to normalized per-app tables, real authentication/authorization, reviewed migrations, backups, and retained audit records.
+
 ## Folder structure
 
 - `src/platform/` — module registry, JSON database adapter, validation, and lifecycle policy.
@@ -51,10 +59,3 @@ The modular addon/folder and manifest concept was informed by [ProjectMeru/sumer
 ## Known gaps before production
 
 This is a fast, local proof of concept. It uses a JSON file, has no sign-in/RBAC, does not implement schema migrations or true physical per-module database schemas, and does not include production-grade audit retention or concurrency control. The “delete” action removes that module's records from the local demo store to demonstrate the dependency behavior. Do not use real business data.
-
-
-## Hosted preview (demo only)
-
-For a quick hosted walkthrough, connect this repository to a Node.js web service such as Render. Set the service root directory to `modular-demo`, the build command to `npm install`, the start command to `npm start`, and `HOST` to `0.0.0.0`. The host supplies `PORT` automatically. After deployment, share the generated HTTPS URL with the reviewer.
-
-This preview is not production-ready: it has no login/RBAC and stores records in `data/store.json`. A hosted free instance may lose that file when it restarts, redeploys, or idles. Use sample data only. For persistent data, connect managed PostgreSQL; before production, add authentication, authorization, migrations, backups, and an audit trail before exposing Super Admin operations.
