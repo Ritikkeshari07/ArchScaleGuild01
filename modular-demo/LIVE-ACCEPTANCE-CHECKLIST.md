@@ -1,6 +1,6 @@
 # Live Acceptance Checklist — Four-App Demo
 
-Use this checklist with the hosted demo and sample/demo data only. Sign in through the browser's in-page form; do not share the demo password in chat or put real business data in the demo.
+Use this checklist with the hosted demo and sample/demo data only. Sign in through the browser's in-page form in each separate app or Super Admin tab you test; sign-in is kept in that tab. Enter the password directly in the browser, never in chat, and do not put real business data in the demo.
 
 ## 1. Confirm the workspaces are separate
 
