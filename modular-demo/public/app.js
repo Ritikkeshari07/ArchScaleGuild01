@@ -4,7 +4,7 @@ const isAdmin=pathName==='/admin';
 const current=window.ARCHSCALE_APP_ID||(pathName.startsWith('/apps/')?pathName.split('/')[2]:null);
 let model;
 const $=s=>document.querySelector(s);
-async function api(url,options={}){const r=await fetch(url,{headers:{'content-type':'application/json'},...options});const data=await r.json();if(!r.ok)throw new Error(data.error||'Request failed');return data;}
+async function api(url,options={}){const r=await fetch(url,{headers:{'content-type':'application/json'},...options});const data=await r.json().catch(()=>null);if(!r.ok)throw new Error(data?.error||(r.status===401?'Please sign in with the demo password, then refresh.':'Unexpected server response.'));if(!data)throw new Error('Unexpected server response.');return data;}
 function esc(x=''){return String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
 function options(rows,labelKey='name'){return '<option value="">Manual entry / none</option>'+rows.map(x=>`<option value="${esc(x.id)}">${esc(x[labelKey])}</option>`).join('');}
 function field(label,name,type='text',required=false,extra=''){return `<label>${label}<input name="${name}" type="${type}" ${required?'required':''} ${extra}></label>`;}
