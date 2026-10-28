@@ -18,10 +18,6 @@ const workerSource = `export default {
         headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
       });
     }
-    if (url.pathname !== '/health' && !request.headers.has('authorization')) {
-      const challenge = await env.PLATFORM.fetch(new Request('https://platform.internal/api/state'));
-      if (challenge.status === 401) return challenge;
-    }
     if (url.pathname.startsWith('/api/')) {
       const target = new URL(url.pathname + url.search, 'https://platform.internal');
       return env.PLATFORM.fetch(new Request(target, request));
