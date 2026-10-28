@@ -61,6 +61,7 @@ async function route(req,res) {
 }
 const server=http.createServer((req,res)=>route(req,res).catch(e=>send(res,500,{error:e.message})));
 const preferredPort=Number(process.env.PORT||3000);
+const host=process.env.HOST||'127.0.0.1';
 function listen(port){
   const onError=error=>{
     server.removeListener('error',onError);
@@ -73,9 +74,9 @@ function listen(port){
     process.exitCode=1;
   };
   server.once('error',onError);
-  server.listen(port,'127.0.0.1',()=>{
+  server.listen(port,host,()=>{
     server.removeListener('error',onError);
-    console.log(`Four-app demo running at http://127.0.0.1:${server.address().port}`);
+    console.log(`Four-app demo listening on ${host}:${server.address().port}`);
   });
 }
 listen(preferredPort);
