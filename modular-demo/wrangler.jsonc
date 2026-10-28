@@ -1,0 +1,21 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "archscale-four-apps-demo",
+  "main": "src/worker.mjs",
+  "compatibility_date": "2026-10-28",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "archscale-four-apps-demo",
+      "database_id": "a7ca03bd-792d-4652-ab74-b9431f8ccf0d",
+      "migrations_dir": "migrations"
+    }
+  ]
+}
