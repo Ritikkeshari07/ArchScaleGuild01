@@ -15,7 +15,7 @@
 
 ## Verification
 
-Automated checks: **5 passed, 0 failed** using Node's built-in test runner, including an all-pairs app-link and deletion-snapshot check. JavaScript syntax checks pass. The D1 migration was exercised against a local SQLite copy and applied to the hosted demo; all four app tables and the audit entry were verified to contain the existing example data. Cloudflare is building the latest Worker update. The separate app pages are implemented at `/apps/contacts`, `/apps/products`, `/apps/orders`, and `/apps/tasks`; `/admin` hosts Super Admin controls.
+Automated checks: **5 passed, 0 failed** using Node's built-in test runner, including an all-pairs app-link and deletion-snapshot check. JavaScript syntax checks pass. The D1 migration was exercised against a local SQLite copy and applied to the hosted demo; all four app tables and the audit entry were verified to contain the existing example data. The latest Cloudflare build succeeded, and the deployed Worker health route responded successfully. The separate app pages are implemented at `/apps/contacts`, `/apps/products`, `/apps/orders`, and `/apps/tasks`; `/admin` hosts Super Admin controls. The authenticated workspace UI still needs a manual browser check.
 
 ## Remaining before production
 
