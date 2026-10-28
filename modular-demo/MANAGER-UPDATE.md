@@ -37,7 +37,7 @@ flowchart LR
 
 - **Record changes:** app form submissions go through the app Worker’s private service binding to the shared platform API and are written to the app-owned D1 table. Other apps read them from the same platform API when they load or refresh.
 - **Code changes:** pushing source to `modular-four-apps-demo` triggers the configured Worker Builds. A code push does not itself modify business records; schema changes need an explicit migration.
-- The demo persists shared data, but open screens do not receive automatic live refresh events yet; reload to see changes created in another app.
+- Visible signed-in app tabs poll shared state every five seconds and refresh tables/selectors automatically. Polling pauses while tabs are hidden and defers rerendering while a create form is being edited; this is not push/WebSocket delivery.
 
 ## Deletion boundaries
 
