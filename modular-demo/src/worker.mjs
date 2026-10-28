@@ -102,9 +102,7 @@ export default {
     if (url.pathname.startsWith('/api/')) {
       if (!env.DEMO_PASSWORD) return json(503, { error: 'Demo access is not configured yet.' });
       if (!basicAuthOk(request, env.DEMO_PASSWORD)) {
-        return json(401, { error: 'A manager demo password is required.' }, {
-          'www-authenticate': 'Basic realm="Four Apps Demo", charset="UTF-8"'
-        });
+        return json(401, { error: 'A manager demo password is required.' });
       }
       try { return await handleApi(request, env); }
       catch (error) { return json(error.status || 500, { error: error.message || 'Server error.' }); }
