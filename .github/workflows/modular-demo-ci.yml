@@ -23,6 +23,8 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
       - name: Run modularity checks
         run: npm test
+      - name: Validate Cloudflare Worker bundle
+        run: npx --yes wrangler@latest deploy --dry-run
