@@ -39,7 +39,8 @@ flowchart LR
   SA[Super Admin UI] --> API
   API --> DB[(Shared Cloudflare D1)]
   DB --- Tables[App-owned records · app registry · audit history]
-  GH[GitHub branch] -. Separate build and deploy .-> C
+  GH[GitHub branch] -. Core platform build and deploy .-> API
+  GH -. Separate build and deploy .-> C
   GH -. Separate build and deploy .-> P
   GH -. Separate build and deploy .-> O
   GH -. Separate build and deploy .-> T
