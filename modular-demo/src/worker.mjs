@@ -4,6 +4,7 @@ import contacts from './apps/contacts/index.js';
 import products from './apps/products/index.js';
 import orders from './apps/orders/index.js';
 import tasks from './apps/tasks/index.js';
+import { readState, writeState } from './platform/d1-store.mjs';
 
 const { definitions, initialState } = registry;
 const { transition, assertActive } = lifecycle;
@@ -26,30 +27,6 @@ function basicAuthOk(request, password) {
   } catch {
     return false;
   }
-}
-
-async function readState(db) {
-  let row = await db.prepare('SELECT revision, payload FROM demo_state WHERE id = 1').first();
-  if (!row) {
-    await db.prepare('INSERT OR IGNORE INTO demo_state (id, revision, payload) VALUES (1, 0, ?)')
-      .bind(JSON.stringify(initialState())).run();
-    row = await db.prepare('SELECT revision, payload FROM demo_state WHERE id = 1').first();
-  }
-  const state = JSON.parse(row.payload);
-  Object.defineProperty(state, '__revision', { value: Number(row.revision), writable: true, enumerable: false });
-  return state;
-}
-
-async function writeState(db, state) {
-  const revision = Number(state.__revision || 0);
-  const result = await db.prepare('UPDATE demo_state SET payload = ?, revision = revision + 1 WHERE id = 1 AND revision = ?')
-    .bind(JSON.stringify(state), revision).run();
-  if (result.meta?.changes !== 1) {
-    const error = new Error('Another demo action was saved at the same time. Reload and try again.');
-    error.status = 409;
-    throw error;
-  }
-  state.__revision = revision + 1;
 }
 
 function audit(state, action, moduleId, details = '') {
@@ -136,3 +113,4 @@ export default {
     return env.ASSETS.fetch(request);
   }
 };
+
