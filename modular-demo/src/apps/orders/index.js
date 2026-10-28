@@ -4,6 +4,7 @@ module.exports = {
     const { cleanText, number } = require('../../platform/validation');
     const customer = state.contacts.find(x => x.id === input.customerId);
     const product = state.products.find(x => x.id === input.productId);
+    const task = state.tasks.find(x => x.id === input.taskId);
     const customerName = customer?.name || cleanText(input.customerName, 'Customer name');
     const productName = product?.name || cleanText(input.productName, 'Product name');
     const unitPrice = number(product ? product.price : input.unitPrice, 'Unit price');
@@ -12,6 +13,7 @@ module.exports = {
       id: crypto.randomUUID(), orderNo: cleanText(input.orderNo, 'Order number', 60),
       customerId: customer?.id || null, customerName,
       productId: product?.id || null, productName, unitPrice, quantity,
+      taskId: task?.id || null, taskName: task?.name || String(input.taskName || '').trim(),
       total: Math.round(unitPrice * quantity * 100) / 100,
       status: input.status || 'Draft', createdAt: new Date().toISOString()
     };

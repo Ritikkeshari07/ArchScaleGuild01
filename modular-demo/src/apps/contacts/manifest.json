@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "summary": "Owns contact and organization records.",
   "dependsOn": ["platform"],
-  "optionalIntegrations": ["contacts", "products", "orders"],
+  "optionalIntegrations": ["products", "orders", "tasks"],
   "status": "installable-demo"
 }

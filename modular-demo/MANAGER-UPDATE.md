@@ -6,14 +6,15 @@
 
 - Created separate Contacts, Products, Orders, and Tasks modules with manifests and a shared platform registry.
 - Added a separate browser workspace and URL for each app, plus a distinct Super Admin page. The four apps continue to share the platform API and local demo database for their inter-app links and saved snapshots.
-- Implemented optional app links and saved display snapshots: Orders retain customer/product text, price, quantity, and total; Tasks retain the order reference.
+- Implemented optional links between every pair of apps, with saved display snapshots so deleting one app's records does not erase the related values in other apps.
+- Orders retain customer/product/task text, price, quantity, and total; Tasks retain contact, product, and order references.
 - Added Super Admin demo controls to activate, deactivate, retire, and delete one module's records. Deactivation and retirement retain records; deletion clears only that module's own collection.
 - Added the ABC Studio / Marble Sample / ORD-001 demo story and manual-entry fallback after Contacts or Products are removed.
 - Added automated checks for product removal, order removal, saved task references, manual fallback, and lifecycle record handling.
 
 ## Verification
 
-Automated checks: **4 passed, 0 failed** using Node's built-in test runner. JavaScript syntax checks pass. The separate app pages are implemented at `/apps/contacts`, `/apps/products`, `/apps/orders`, and `/apps/tasks`; `/admin` hosts Super Admin controls. Startup now tries the next available port if 3000 is busy and prints the exact local URL. Manual lifecycle clicks and the delete-data confirmation flow remain to be walked through in the browser.
+Automated checks: **5 passed, 0 failed** using Node's built-in test runner, including an all-pairs app-link and deletion-snapshot check. JavaScript syntax checks pass. The separate app pages are implemented at `/apps/contacts`, `/apps/products`, `/apps/orders`, and `/apps/tasks`; `/admin` hosts Super Admin controls. Startup tries the next available port if 3000 is busy and prints the exact local URL. Manual lifecycle clicks and the delete-data confirmation flow remain to be walked through in the browser.
 
 ## Remaining before production
 

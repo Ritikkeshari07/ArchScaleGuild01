@@ -76,3 +76,41 @@ test('contact and task removal do not remove other apps or saved customer snapsh
   assert.equal(manual.total,10);
 });
 
+test('every app can connect to each of the other three and keep snapshots after deletion', () => {
+  const s = initialState();
+  s.products.push({ id:'seed-product', name:'Marble Sample', price:500 });
+  s.orders.push({ id:'seed-order', orderNo:'ORD-001' });
+  s.tasks.push({ id:'seed-task', name:'Confirm delivery' });
+  const c = contacts.create({ name:'ABC Studio', productId:'seed-product', orderId:'seed-order', taskId:'seed-task' },s);
+  const p = products.create({ name:'Granite Sample', sku:'G-1', price:250, contactId:c.id, orderId:'seed-order', taskId:'seed-task' },s);
+  const o = orders.create({ orderNo:'ORD-002', customerId:c.id, productId:p.id, taskId:'seed-task', quantity:2 },s);
+  const t = tasks.create({ name:'Pack sample', assignedTo:'Alex', orderId:o.id, contactId:c.id, productId:p.id },s);
+
+  assert.equal(c.productId,'seed-product');
+  assert.equal(c.orderRef,'ORD-001');
+  assert.equal(c.taskName,'Confirm delivery');
+  assert.equal(p.contactId,c.id);
+  assert.equal(p.orderRef,'ORD-001');
+  assert.equal(p.taskName,'Confirm delivery');
+  assert.equal(o.customerId,c.id);
+  assert.equal(o.productId,p.id);
+  assert.equal(o.taskId,'seed-task');
+  assert.equal(t.orderId,o.id);
+  assert.equal(t.contactId,c.id);
+  assert.equal(t.productId,p.id);
+
+  transition(s,'contacts','delete');
+  assert.equal(s.products[1].contactName,'ABC Studio');
+  assert.equal(s.orders[1].customerName,'ABC Studio');
+  assert.equal(s.tasks[1].contactName,'ABC Studio');
+  transition(s,'products','delete');
+  assert.equal(s.orders[1].productName,'Granite Sample');
+  assert.equal(s.tasks[1].productName,'Granite Sample');
+  transition(s,'orders','delete');
+  assert.equal(s.tasks[1].orderRef,'ORD-002');
+  transition(s,'tasks','delete');
+  assert.equal(s.products.length,0);
+  assert.equal(s.orders.length,0);
+  assert.equal(s.tasks.length,0);
+});
+

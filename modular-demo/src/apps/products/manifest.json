@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "summary": "Owns product catalogue and standard prices.",
   "dependsOn": ["platform"],
-  "optionalIntegrations": ["contacts", "products", "orders"],
+  "optionalIntegrations": ["contacts", "orders", "tasks"],
   "status": "installable-demo"
 }

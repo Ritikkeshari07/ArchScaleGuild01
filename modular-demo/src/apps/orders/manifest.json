@@ -4,6 +4,6 @@
   "version": "0.1.0",
   "summary": "Owns order totals and customer/product display snapshots.",
   "dependsOn": ["platform"],
-  "optionalIntegrations": ["contacts", "products", "orders"],
+  "optionalIntegrations": ["contacts", "products", "tasks"],
   "status": "installable-demo"
 }

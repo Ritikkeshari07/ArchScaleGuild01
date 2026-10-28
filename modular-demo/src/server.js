@@ -17,10 +17,13 @@ async function route(req,res) {
   if (req.method === 'GET' && url.pathname === '/api/state') return send(res,200,{ definitions, state:db.read() });
   if (req.method === 'POST' && url.pathname === '/api/demo/reset') {
     const state = db.reset();
-    const contact = apps.contacts.create({name:'ABC Studio',organization:'ABC Studio',city:'Mumbai'},state);
-    const product = apps.products.create({name:'Marble Sample',sku:'MAR-001',category:'Samples',unit:'each',price:500},state);
+    const contact = apps.contacts.create({name:'ABC Studio',organization:'ABC Studio',city:'Mumbai',productName:'Marble Sample',orderRef:'ORD-001',taskName:'Confirm delivery'},state);
+    const product = apps.products.create({name:'Marble Sample',sku:'MAR-001',category:'Samples',unit:'each',price:500,contactId:contact.id,orderRef:'ORD-001',taskName:'Confirm delivery'},state);
     const order = apps.orders.create({orderNo:'ORD-001',customerId:contact.id,productId:product.id,quantity:4,status:'Confirmed'},state);
-    apps.tasks.create({name:'Confirm delivery',assignedTo:'Demo Admin',orderId:order.id,dueDate:'2026-10-30'},state);
+    const task = apps.tasks.create({name:'Confirm delivery',assignedTo:'Demo Admin',orderId:order.id,contactId:contact.id,productId:product.id,dueDate:'2026-10-30'},state);
+    contact.productId=product.id; contact.orderId=order.id; contact.taskId=task.id;
+    product.orderId=order.id; product.taskId=task.id;
+    order.taskId=task.id; order.taskName=task.name;
     audit(state,'demo-reset','platform','Loaded ABC Studio example records'); db.write(state);
     return send(res,200,{ok:true});
   }
