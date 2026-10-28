@@ -32,6 +32,8 @@ Enter the configured demo password in the in-page sign-in form. Authentication a
 
 ## Verification
 
+Use the [live acceptance checklist](LIVE-ACCEPTANCE-CHECKLIST.md) to run and record the remaining signed-in record-link and Super Admin checks.
+
 - `npm test`: 7 passed, 0 failed.
 - All four independent build packages generated locally.
 - Cloudflare Workers Builds for Contacts, Products, Orders, Tasks, and the shared platform completed successfully from the GitHub branch.
