@@ -2,6 +2,27 @@
 
 **Status:** Presentable demo deployed with four independent app workspaces backed by one shared Cloudflare platform API and D1 database. This is a proof of concept, not production RBAC.
 
+## Architecture at a glance
+
+```mermaid
+flowchart LR
+  U[Users] --> C[Contacts Worker]
+  U --> P[Products Worker]
+  U --> O[Orders Worker]
+  U --> T[Tasks Worker]
+  C -->|Private service binding| API[Shared platform API Worker]
+  P -->|Private service binding| API
+  O -->|Private service binding| API
+  T -->|Private service binding| API
+  SA[Super Admin UI] --> API
+  API --> DB[(Shared Cloudflare D1)]
+  DB --- Tables[App-owned records · app registry · audit history]
+  GH[GitHub branch] -. Separate build and deploy .-> C
+  GH -. Separate build and deploy .-> P
+  GH -. Separate build and deploy .-> O
+  GH -. Separate build and deploy .-> T
+```
+
 ## Completed
 
 - Contacts, Products, Orders, and Tasks run as four separate Cloudflare Workers with separate workspace URLs and build/deploy commands.
