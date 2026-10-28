@@ -35,7 +35,7 @@ Enter the configured demo password in the in-page sign-in form. Authentication a
 Use the [live acceptance checklist](LIVE-ACCEPTANCE-CHECKLIST.md) to run and record the remaining signed-in record-link and Super Admin checks.
 
 - `npm test`: 7 passed, 0 failed.
-- All four independent build packages generated locally.
+- All four independent build packages generated locally with the single command `npm run build:apps`.
 - Cloudflare Workers Builds for Contacts, Products, Orders, Tasks, and the shared platform completed successfully from the GitHub branch.
 - Each app `/health` endpoint returned its own app identifier. Shared platform deployed successfully and the D1 registry reports all four apps active and deployed.
 - All four live apps displayed the sign-in flow and returned the shared API's expected in-page rejection for an invalid test password, confirming the app-to-platform service binding path. A valid-password record exchange and Super Admin action check still require a manual live session.
