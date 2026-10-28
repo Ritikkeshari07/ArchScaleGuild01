@@ -52,6 +52,12 @@ To preview locally with Cloudflare, run `npm run cf:dev` after authenticating Wr
 
 This remains a manager-review demo, not production: the password gate is shared access, not user accounts or RBAC. The four Worker packages and service bindings establish independent deployment boundaries around one stable data/API service. The four independent app Workers are deployed from the modular-four-apps-demo branch and are listed in MANAGER-UPDATE.md. App workspace pages display a sign-in form for the configured demo password. The password is sent only to the shared API and is held in memory for the current browser tab. App records and shared D1 are deliberately separate from Worker deployment, so removing an app Worker does not cascade into another app's records. Use sample data only. Before production, add real authentication/authorization, reviewed migrations, backups, and audit retention.
 
+## Record changes vs. code changes
+
+- **Record changes:** a user saves a Contact, Product, Order, or Task in its app; that app Worker forwards the request through its private service binding to the platform API, which writes the app-owned D1 table. The other apps can read the shared record and its saved link snapshots when they load or refresh.
+- **Code changes:** a source commit to `modular-four-apps-demo` triggers the configured Cloudflare Worker Builds and deploys the affected Worker packages. A code push does not itself change business records; database structure changes need an explicit migration.
+- The demo uses shared persisted data, but does not yet push live refresh events to screens that are already open. Those screens need a reload to see new records.
+
 ## Folder structure
 
 - `src/platform/` — module registry, local JSON adapter, Cloudflare D1 adapter, validation, and lifecycle policy.
