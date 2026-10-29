@@ -26,6 +26,15 @@ test('each app builds as its own Worker with a private platform service binding'
     assert.match(client, /window\.setInterval\(\(\s*\)=>pollSharedState/);
     assert.match(client, /document\.hidden/);
     assert.match(client, /function hasUnsavedFormDraft/);
+    assert.match(client, /function relationshipCell\\(s,appId,id,snapshot\\)/);
+    assert.match(client, /Saved snapshot · source record deleted/);
+    for (const relation of [
+      "relationshipCell(s,'products',x.productId,x.productName)",
+      "relationshipCell(s,'orders',x.orderId,x.orderRef)",
+      "relationshipCell(s,'tasks',x.taskId,x.taskName)",
+      "relationshipCell(s,'contacts',x.customerId,x.customerName)",
+      "relationshipCell(s,'contacts',x.contactId,x.contactName)"
+    ]) assert.ok(client.includes(relation), `Missing snapshot rendering for ${relation}`);
     assert.match(client, /document\.activeElement\?\.closest\('#create'\)/);
     const platform = await readFile(path.join(root, 'src', 'worker.mjs'), 'utf8');
     assert.doesNotMatch(platform, /www-authenticate/);
