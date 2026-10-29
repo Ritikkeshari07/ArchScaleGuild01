@@ -26,7 +26,7 @@ test('each app builds as its own Worker with a private platform service binding'
     assert.match(client, /window\.setInterval\(\(\s*\)=>pollSharedState/);
     assert.match(client, /document\.hidden/);
     assert.match(client, /function hasUnsavedFormDraft/);
-    assert.match(client, /function relationshipCell\\(s,appId,id,snapshot\\)/);
+    assert.match(client, /function relationshipCell\(s,appId,id,snapshot\)/);
     assert.match(client, /Saved snapshot · source record deleted/);
     for (const relation of [
       "relationshipCell(s,'products',x.productId,x.productName)",
