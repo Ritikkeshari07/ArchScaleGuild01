@@ -62,6 +62,7 @@ begin
     delete from public.app_memberships where app_id = target_app;
     update public.app_registry set status='removed', updated_at=now() where app_id=target_app;
     execute format('drop schema if exists %I cascade', target_app);
+    execute format('create schema if not exists %I', target_app);
     return 'removed';
   end if;
 

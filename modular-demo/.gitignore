@@ -6,3 +6,5 @@ data/store.json
 deployables/
 .DS_Store
 Thumbs.db
+.vercel
+.env*

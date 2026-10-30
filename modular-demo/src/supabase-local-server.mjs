@@ -167,6 +167,7 @@ async function stateFor(token, userId) {
 
 async function handleApi(req, res) {
   const url = new URL(req.url, 'http://127.0.0.1');
+  if (url.pathname === '/api/health') return json(res, 200, { ok: true, service: 'four-app-supabase-local' });
   if (req.method !== 'GET') assertSameOrigin(req);
   if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
     return json(res,200,{ ok:true },clearAuthCookies(req));
