@@ -1,5 +1,7 @@
 node_modules/
 .dev.vars
+.env.local
+supabase/snippets/
 data/store.json
 deployables/
 .DS_Store

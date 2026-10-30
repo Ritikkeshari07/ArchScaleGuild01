@@ -5,6 +5,7 @@
   "description": "Four-app modularity and removal-safety demonstration",
   "scripts": {
     "start": "node src/server.js",
+    "start:supabase": "node scripts/start-supabase-pilot.mjs",
     "test": "node --test",
     "build:apps": "npm run build:contacts && npm run build:products && npm run build:orders && npm run build:tasks",
     "cf:dev": "npx wrangler dev",

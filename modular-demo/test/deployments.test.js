@@ -22,7 +22,9 @@ test('each app builds as its own Worker with a private platform service binding'
     assert.match(worker, /env\.PLATFORM\.fetch\(request\)/);
     assert.match(worker, /env\.ASSETS\.fetch/);
     assert.match(client, /demo-login-form/);
-    assert.match(client, /demoAuthorization/);
+    assert.match(client, /credentials:'same-origin'/);
+    assert.match(client, /function setAuthenticatedUI\(authenticated\)/);
+    assert.match(client, /\/api\/auth\/logout/);
     assert.match(client, /window\.setInterval\(\(\s*\)=>pollSharedState/);
     assert.match(client, /document\.hidden/);
     assert.match(client, /function hasUnsavedFormDraft/);

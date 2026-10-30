@@ -1,5 +1,30 @@
 # Four Interdependent Apps — Modularity Demo
 
+## Supabase four-app local pilot
+
+The `supabase-four-app-pilot` branch includes Contacts, Products, Orders, and Tasks. The Tasks workspace is added with a forward-only migration, preserving the local account and existing records. It uses local Supabase Auth, organization membership, app-scoped write access, RLS, lifecycle controls, and linked sample records. The local Node server stores the Supabase session in HttpOnly cookies so one sign-in works across the dashboard and all workspace routes on this origin. Existing D1 demo files remain for comparison; run the Supabase pilot with `Run-Supabase-Pilot.cmd` or `npm run start:supabase`, not `npm start`.
+
+The local schema boundary migration moves app-owned records into `contacts`, `products`, `orders`, and `tasks` schemas. The permanent platform tables stay in `public`. Super Admin's **Remove schema** action is an ecosystem-wide uninstall for this disposable local pilot: it drops the selected app schema, removes contracts involving that app, and preserves reference IDs and display snapshots in the remaining app schemas. The other workspaces keep manual snapshot entry available when that app is no longer installed.
+
+### Start the local pilot
+
+Requirements: Node.js 20 or later, Docker Desktop running, and the Supabase CLI.
+
+1. Open Docker Desktop and wait until it reports that the engine is running.
+2. Double-click `Run-Supabase-Pilot.cmd` from this folder. On first run, Supabase downloads its local service images and applies the migrations and sample data. Copy the Project URL and Publishable key from its output when prompted; they are saved to the ignored `.env.local` file.
+3. Open the local app at `http://127.0.0.1:3000`, choose **Create local account**, and sign up with your email and a password.
+4. Open Supabase Studio at `http://127.0.0.1:54323`. In SQL Editor, open `supabase/bootstrap_admin.sql`, replace both occurrences of `replace-with-your-email@example.com` with your signup email, and run it. This grants that local account pilot-admin access to all four apps.
+5. Sign in or reload the app. The seeded ABC Studio, Marble Sample, ORD-001, and Confirm delivery records should appear, linked across all four apps.
+6. If upgrading an existing three-app local database, apply the Tasks migration with `supabase migration up --local`. Do not reset the database; the migration preserves existing records and grants Tasks access to current platform admins.
+
+This local setup is for sample data only. The hosted production cutover, backup and recovery plan, and independent security review still need to happen before real users or business data are added. Never put a Supabase secret key in `.env.local` or browser code; this pilot uses the publishable key and the signed-in user token for app requests.
+
+### Vercel staging preparation
+
+The Supabase pilot now has a Vercel Node Function entry point at `api/[...path].mjs`; static pages remain under `public/`. For the first staging deployment, import the GitHub branch as one Vercel project with this folder (`modular-demo`) as its Root Directory and the Other framework preset. No build command is required. Configure `SUPABASE_URL` and `SUPABASE_PUBLISHABLE_KEY` as Vercel environment variables; never add a Supabase secret/service-role key. The local Node server remains available with `npm run start:supabase`.
+
+This is a staging adapter, not a production approval. Hosted staging still needs migration/security review, a new Supabase project, an admin bootstrap for the hosted user, and an end-to-end check of auth redirects and app lifecycle actions. Start with the Vercel preview domain; configure separate app domains and central sign-in after the preview flow is verified.
+
 A local, dependency-free Node.js prototype for demonstrating the assigned modularity work: Contacts, Products, Orders, Tasks, optional app integrations, saved snapshots, and Super Admin lifecycle controls.
 
 ## Run
