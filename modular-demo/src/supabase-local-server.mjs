@@ -101,9 +101,16 @@ async function supabase(pathname, { token, method='GET', body, prefer, schema } 
   return data;
 }
 
+const userCache = new Map();
+
 async function currentUser(token) {
   if (!token) throw Object.assign(new Error('Sign in required.'), { status:401 });
-  return supabase('/auth/v1/user', { token });
+  const hit = userCache.get(token);
+  if (hit && Date.now() - hit.ts < 60_000) return hit.user;
+  const user = await supabase('/auth/v1/user', { token });
+  userCache.set(token, { user, ts: Date.now() });
+  if (userCache.size > 500) userCache.clear();
+  return user;
 }
 
 async function sessionFor(req, res) {
@@ -140,15 +147,15 @@ async function stateFor(token, userId) {
   const memberships = await supabase(`/rest/v1/app_memberships?select=organization_id&user_id=eq.${encodeURIComponent(userId)}&is_active=eq.true&limit=1`, { token });
   if (!memberships?.length) throw Object.assign(new Error('Your account has no app access yet. Ask the platform admin to assign access.'), { status:403 });
   const orgId = memberships[0].organization_id;
-  const moduleRows = await getRows('app_registry', orgId, token, '&order=app_id');
+  const [moduleRows, auditRows, contractRows] = await Promise.all([
+    getRows('app_registry', orgId, token, '&order=app_id'),
+    supabase(`/rest/v1/audit_log?select=*&organization_id=eq.${encodeURIComponent(orgId)}&order=created_at.desc&limit=100`, { token }),
+    supabase('/rest/v1/integration_contracts?select=*&status=eq.active&order=producer_app,consumer_app', { token })
+  ]);
   const appRows = Object.fromEntries(await Promise.all(appIds.map(async appId => {
     const moduleStatus = moduleRows.find(row => row.app_id === appId)?.status;
     return [appId, moduleStatus === 'removed' ? [] : await getRows(appId, orgId, token, '&order=created_at.asc', appId)];
   })));
-  const [auditRows, contractRows] = await Promise.all([
-    supabase(`/rest/v1/audit_log?select=*&organization_id=eq.${encodeURIComponent(orgId)}&order=created_at.desc&limit=100`, { token }),
-    supabase('/rest/v1/integration_contracts?select=*&status=eq.active&order=producer_app,consumer_app', { token })
-  ]);
   const modules = Object.fromEntries(definitions.map(def => {
     const row = moduleRows.find(item => item.app_id === def.id);
     return [def.id, { status:row?.status || 'active', updatedAt:row?.updated_at || '', deploymentMode:'supabase', workerName:'', repositoryPath:'', deploymentUrl:`/apps/${def.id}`, deploymentStatus:'local' }];
@@ -170,6 +177,9 @@ async function handleApi(req, res) {
   if (url.pathname === '/api/health') return json(res, 200, { ok: true, service: 'four-app-supabase-local' });
   if (req.method !== 'GET') assertSameOrigin(req);
   if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
+    const jar = cookies(req);
+    const token = bearer(req) || jar.archscale_access;
+    if (token) userCache.delete(token);
     return json(res,200,{ ok:true },clearAuthCookies(req));
   }
   if (req.method === 'POST' && ['/api/auth/login','/api/auth/signup'].includes(url.pathname)) {
