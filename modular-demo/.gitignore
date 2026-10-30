@@ -8,3 +8,4 @@ deployables/
 Thumbs.db
 .vercel
 .env*
+*.docx
