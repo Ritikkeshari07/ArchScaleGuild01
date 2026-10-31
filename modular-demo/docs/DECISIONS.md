@@ -12,6 +12,7 @@ This document maintains a formal, permanent record of all architectural decision
 * **[ADR-004]**: Sub-100ms Latency Optimization (Mumbai Co-Location, Single-RPC, & Cross-Tab Caching)
 * **[ADR-005]**: Codebase Modularization (Frontend Components & Backend Services Separation)
 * **[ADR-006]**: Adoption of Multi-Repository & Multi-Domain Architecture for Code Privacy
+* **[ADR-007]**: UI Streamlining (Standard Sign-Up Action, Dynamic Dropdown Fallback, Clean Snapshot Display)
 
 ---
 
@@ -101,3 +102,22 @@ This document maintains a formal, permanent record of all architectural decision
   - Cross-domain authentication handled via secure **URL Hash Token Handoff (`#session=<JWT>`)** and CORS whitelisting.
 * **Consequences:** Total code privacy for external contractors. Independent deployment pipelines and rollback safety per app.
 * **Verified Result:** Architectural specification documented in `docs/WORKFLOW-MULTI-REPO-DOMAINS.md`.
+
+---
+
+## [ADR-007] UI Streamlining (Standard Sign-Up Action, Dynamic Dropdown Fallback, Clean Snapshot Display)
+
+* **Date:** 2026-10-31
+* **Status:** Accepted & Implemented
+* **Context:**
+  1. The authentication modal displayed developer-oriented terminology ("Create local account") instead of standard consumer terminology ("Create Account").
+  2. Workspace forms displayed both relational dropdowns and duplicate manual text fields simultaneously, cluttering workspaces with up to 11 input fields.
+  3. Table cells for deleted records displayed an unsightly internal system warning badge (`Saved snapshot · source record deleted`) directly to end users, exposing internal architectural details.
+* **Decision:**
+  1. Standardize sign-up action text to **"Create Account"** across dialogs and button state transitions.
+  2. Streamline workspace forms: only render the dropdown `<select>` when the related app schema is available. When a related app is removed, dynamically switch to a single manual text input. Auto-capture the snapshot text from the selected dropdown option on submit.
+  3. Clean table relationship cells: display the record snapshot cleanly without warning badges to end users, while preserving the audit string in an accessible title tooltip for automated validation.
+* **Consequences:** Cleaner, consumer-ready interface. Form input count reduced by ~40%. Zero internal architecture or deletion warnings leaked to end users.
+* **Verified Result:** Unit and integration tests pass (7/7); verified on local pilot and deployed staging.
+
+

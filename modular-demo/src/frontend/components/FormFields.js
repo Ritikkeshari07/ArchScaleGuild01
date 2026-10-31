@@ -15,3 +15,11 @@ export function options(rows = [], labelKey = 'name') {
     `<option value="${esc(x.id)}">${esc(x[labelKey])}</option>`
   )).join('');
 }
+
+export function relationField(state, targetApp, selectName, selectLabel, textName, textLabel, labelKey = 'name') {
+  const isAvailable = state.modules?.[targetApp]?.status !== 'removed' && (state[targetApp] && state[targetApp].length > 0);
+  if (isAvailable) {
+    return `<label>${esc(selectLabel)}<select name="${esc(selectName)}">${options(state[targetApp], labelKey)}</select></label>`;
+  }
+  return field(`${textLabel} (manual entry)`, textName);
+}

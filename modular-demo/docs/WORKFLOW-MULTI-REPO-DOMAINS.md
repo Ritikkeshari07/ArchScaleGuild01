@@ -189,3 +189,4 @@ export function handleCors(req, res) {
 4. **Phase 4: Multi-Domain Verification**
    - Perform end-to-end testing across all 5 independent domains.
    - Verify that deleting data or removing schemas from the Super Admin portal gracefully falls back to snapshots across independent app domains.
+

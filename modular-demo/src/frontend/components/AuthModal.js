@@ -11,7 +11,7 @@ export function createAuthModal({ onSubmit, onSignup, onCancel } = {}) {
     <section class="login-card" role="dialog" aria-modal="true" aria-labelledby="login-title">
       <span class="eyebrow">ARCHSCALE · SUPABASE</span>
       <h2 id="login-title">Sign in</h2>
-      <p>Use your account for the local four-app pilot.</p>
+      <p>Use your account for the ArchScale four-app platform.</p>
       <form id="demo-login-form">
         <label for="login-email">Email</label>
         <input id="login-email" name="email" type="email" autocomplete="username" required>
@@ -22,7 +22,7 @@ export function createAuthModal({ onSubmit, onSignup, onCancel } = {}) {
         </div>
         <div class="login-error" role="status" aria-live="polite"></div>
         <button class="primary" type="submit">Sign in</button>
-        <button id="signup" class="secondary" type="button">Create local account</button>
+        <button id="signup" class="secondary" type="button">Create Account</button>
         <p class="login-hint">Create your account once, then use Sign in next time.</p>
       </form>
     </section>

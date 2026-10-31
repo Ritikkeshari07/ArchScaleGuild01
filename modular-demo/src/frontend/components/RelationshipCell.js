@@ -15,5 +15,5 @@ export function relationshipCell(state, appId, id, snapshot) {
   const stillExists = Boolean(id) && (state[appId] || []).some(record => record.id === id);
   return !id || stillExists
     ? label
-    : `${label}<small class="snapshot-note" aria-label="Saved snapshot; source record deleted">Saved snapshot · source record deleted</small>`;
+    : `<span class="snapshot-clean" title="Saved snapshot · source record deleted">${label}</span>`;
 }
