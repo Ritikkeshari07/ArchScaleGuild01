@@ -13,6 +13,7 @@ This document maintains a formal, permanent record of all architectural decision
 * **[ADR-005]**: Codebase Modularization (Frontend Components & Backend Services Separation)
 * **[ADR-006]**: Adoption of Multi-Repository & Multi-Domain Architecture for Code Privacy
 * **[ADR-007]**: UI Streamlining (Standard Sign-Up Action, Dynamic Dropdown Fallback, Clean Snapshot Display)
+* **[ADR-008]**: Enterprise Schema Blueprints, Pre-Deletion Backup Vault, and JIT Access Tokens
 
 ---
 
@@ -119,5 +120,24 @@ This document maintains a formal, permanent record of all architectural decision
   3. Clean table relationship cells: display the record snapshot cleanly without warning badges to end users, while preserving the audit string in an accessible title tooltip for automated validation.
 * **Consequences:** Cleaner, consumer-ready interface. Form input count reduced by ~40%. Zero internal architecture or deletion warnings leaked to end users.
 * **Verified Result:** Unit and integration tests pass (7/7); verified on local pilot and deployed staging.
+
+---
+
+## [ADR-008] Enterprise Schema Blueprints, Pre-Deletion Backup Vault, and JIT Access Tokens
+
+* **Date:** 2026-11-01
+* **Status:** Accepted & Ready for Migration
+* **Context:**
+  1. Once an app schema is removed, there was no automated mechanism to reconstruct tables and policies without manually finding and running original DDL files.
+  2. Executing `delete_data` or `remove_schema` was irreversible, lacking a pre-destruction backup mechanism.
+  3. Developers needed the ability to recover and export backup data without holding permanent database superuser credentials or having full-time access to destructive recovery commands.
+* **Decision:**
+  1. **Schema Blueprints Catalog (`public.schema_blueprints`)**: Store canonical DDL for all 4 apps directly in the database. Provide `restore_app_schema(target_org, target_app)` to re-provision tables, RLS policies, indexes, and contracts atomically.
+  2. **Permanent Data Vault (`public.data_snapshots`)**: Hook into `manage_app_lifecycle` to automatically dump active records into JSONB snapshots before executing destructive deletes. Snapshots are retained permanently (no expiration).
+  3. **Just-In-Time (JIT) Access Requests (`public.access_requests`)**: Super Admin restore controls remain hidden until a developer submits a recovery ticket. Approvals issue single-use, app-scoped tokens valid for 1 hour.
+  4. **Dual-Scale Export**: Support in-place table restoration and `.json` file download, with presigned S3/storage URLs for large datasets.
+* **Consequences:** Eliminates manual SQL for schema restores; guarantees zero irrecoverable data loss; enforces strict least-privilege security across multi-repo teams.
+* **Verified Result:** Packaged in `supabase/migrations/20261101_enterprise_blueprints_and_vault.sql`.
+
 
 
