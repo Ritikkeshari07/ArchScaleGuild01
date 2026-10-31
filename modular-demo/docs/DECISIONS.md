@@ -14,6 +14,7 @@ This document maintains a formal, permanent record of all architectural decision
 * **[ADR-006]**: Adoption of Multi-Repository & Multi-Domain Architecture for Code Privacy
 * **[ADR-007]**: UI Streamlining (Standard Sign-Up Action, Dynamic Dropdown Fallback, Clean Snapshot Display)
 * **[ADR-008]**: Enterprise Schema Blueprints, Pre-Deletion Backup Vault, and JIT Access Tokens
+* **[ADR-009]**: Polyrepo Extraction, Standalone Mock Contracts, and Independent Deployment Boundaries
 
 ---
 
@@ -138,6 +139,28 @@ This document maintains a formal, permanent record of all architectural decision
   4. **Dual-Scale Export**: Support in-place table restoration and `.json` file download, with presigned S3/storage URLs for large datasets.
 * **Consequences:** Eliminates manual SQL for schema restores; guarantees zero irrecoverable data loss; enforces strict least-privilege security across multi-repo teams.
 * **Verified Result:** Packaged in `supabase/migrations/20261101_enterprise_blueprints_and_vault.sql`.
+
+---
+
+## [ADR-009] Polyrepo Extraction, Standalone Mock Contracts, and Independent Deployment Boundaries
+
+* **Date:** 2026-11-01
+* **Status:** Accepted & Implemented
+* **Context:**
+  1. Operating in a single monolithic repo exposed all business domains (Contacts, Products, Orders, Tasks) and central security configurations to external contractors.
+  2. Developers could not run or test their assigned application locally without spinning up cloud dependencies or needing the entire platform stack.
+* **Decision:**
+  1. Extracted 5 independent Git repositories into dedicated directories:
+     - `archscale-platform`: Core Portal, Super Admin (`/admin`), API Gateway, and database blueprints.
+     - `archscale-contacts`: Customer directory workspace (`port 3001`).
+     - `archscale-products`: SKU catalog and pricing workspace (`port 3002`).
+     - `archscale-orders`: Order calculation workspace (`port 3003`).
+     - `archscale-tasks`: Operations and tracking workspace (`port 3004`).
+  2. Implemented offline local development servers (`src/server.mjs`) in each repository, serving deterministic mock contracts (`src/mocks/state.json`) with zero external network or database requirements.
+  3. Pre-configured `vercel.json` rewrites and independent unit test suites (`node --test test/**/*.test.mjs`) in all repositories.
+* **Consequences:** External developers work with zero visibility into adjacent codebases or platform superuser keys. Each application can be deployed, scaled, or rolled back on Vercel independently.
+* **Verified Result:** Generated all 5 repositories via `scripts/generate-polyrepos.mjs`; initialized independent Git histories; 100% pass rate across all app unit tests.
+
 
 
 

@@ -175,18 +175,66 @@ export function handleCors(req, res) {
 
 ---
 
-## 7. Migration Execution Plan (Step-by-Step)
+## 7. Migration Execution Status
 
-1. **Phase 1: UI Upgrade & Component Finalization (Current Focus)**
-   - Complete the modern UI revamp across all app workspaces, navigation bars, and forms before repository extraction.
-2. **Phase 2: Platform Core Extraction**
-   - Create GitHub repo `archscale-platform`.
-   - Implement the CORS whitelist and `#session` SSO receiver in the reusable client runtime.
-   - Deploy `archscale-portal.vercel.app`.
-3. **Phase 3: App Repositories Extraction**
-   - Extract `archscale-contacts`, `archscale-products`, `archscale-orders`, `archscale-tasks` into dedicated repositories.
-   - Deploy each to its corresponding Vercel project.
-4. **Phase 4: Multi-Domain Verification**
-   - Perform end-to-end testing across all 5 independent domains.
-   - Verify that deleting data or removing schemas from the Super Admin portal gracefully falls back to snapshots across independent app domains.
+1. **Phase 1: UI Upgrade & JIT Recovery Vault (Completed)**
+   - Unified authentication modal with "Create Account" transition.
+   - Dynamic form input fallbacks (select dropdown when online, text input when removed).
+   - Clean relationship table cells with tooltips.
+   - Database schema blueprints (`public.schema_blueprints`) and permanent backup vault (`public.data_snapshots`).
+   - JIT developer recovery tickets with auto-hidden Super Admin approval queue.
+2. **Phase 2: Polyrepo Generation & Standalone Mock Contracts (Completed)**
+   - Automated generator `scripts/generate-polyrepos.mjs` implemented.
+   - All 5 repositories generated under `../repos/` with isolated `.git` histories:
+     - `archscale-platform`
+     - `archscale-contacts`
+     - `archscale-products`
+     - `archscale-orders`
+     - `archscale-tasks`
+   - Standalone offline servers and unit test suites verified (100% pass).
+3. **Phase 3: Production Deployment to Vercel Domains (Next Step)**
+   - Deploy each independent repo to its dedicated Vercel project with custom domain mapping.
+
+---
+
+## 8. Standalone Repositories Inventory & Local Developer Runbook
+
+Each generated repository inside `../repos/` is 100% self-contained and allows offline development:
+
+| Repository Name | Assigned Scope | Port | Local Run Command | Unit Test Command | Target Vercel Domain |
+|---|---|---|---|---|---|
+| `archscale-platform` | Core Platform & Super Admin | 3000 | `npm start` | `npm test` | `archscale-four-apps-staging.vercel.app` |
+| `archscale-contacts` | Contacts & Directory | 3001 | `npm run dev` | `npm test` | `archscale-contacts.vercel.app` |
+| `archscale-products` | Products & Pricing | 3002 | `npm run dev` | `npm test` | `archscale-products.vercel.app` |
+| `archscale-orders` | Orders & Calculations | 3003 | `npm run dev` | `npm test` | `archscale-orders.vercel.app` |
+| `archscale-tasks` | Tasks & Operations | 3004 | `npm run dev` | `npm test` | `archscale-tasks.vercel.app` |
+
+### Contractor Offline Workflow:
+1. Clone assigned repository (e.g. `git clone https://github.com/Ritikkeshari07/archscale-orders.git`).
+2. Run `npm run dev`. The server starts at `http://127.0.0.1:3003` serving mock contracts from `src/mocks/state.json`.
+3. Develop frontend features, form validations, and calculations locally.
+4. Run `npm test` to verify contracts.
+5. Push to GitHub to trigger Vercel preview/production deployment.
+
+---
+
+## 9. Vercel Multi-Domain Setup & Linking Guide
+
+For each repository in `../repos/`:
+1. **Push to GitHub**:
+   ```bash
+   cd ../repos/<repo-name>
+   git remote add origin https://github.com/Ritikkeshari07/<repo-name>.git
+   git branch -M main
+   git push -u origin main
+   ```
+2. **Link in Vercel**:
+   - Create a new project in the Vercel dashboard imported from `Ritikkeshari07/<repo-name>`.
+   - Root directory: `./`
+   - Framework preset: `Other`
+   - Rewrites and security headers are automatically parsed from `vercel.json`.
+3. **Configure Environment Variables (Production & Preview)**:
+   - For `archscale-platform`: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `SUPABASE_ANON_KEY`, `SESSION_SECRET`.
+   - For `archscale-contacts`, `archscale-products`, `archscale-orders`, `archscale-tasks`: `SUPABASE_URL`, `SUPABASE_ANON_KEY` (or proxy via Platform API gateway).
+
 
