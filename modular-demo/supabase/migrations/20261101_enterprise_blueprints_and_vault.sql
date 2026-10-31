@@ -56,7 +56,7 @@ create table if not exists public.access_requests (
   id uuid primary key default gen_random_uuid(),
   organization_id uuid not null references public.organizations(id) on delete cascade,
   app_id text not null check (app_id in ('contacts', 'products', 'orders', 'tasks')),
-  action_type text not null check (action_type in ('db_restore', 'download_export')),
+  action_type text not null check (action_type in ('db_restore', 'download_export', 'schema_provision')),
   reason text not null check (length(trim(reason)) > 0),
   requested_by uuid not null references auth.users(id),
   status text not null default 'pending' check (status in ('pending', 'approved', 'consumed', 'rejected', 'expired')),
@@ -361,7 +361,7 @@ declare
   request_id uuid;
 begin
   if target_app not in ('contacts', 'products', 'orders', 'tasks') then raise exception 'Unknown app'; end if;
-  if target_action not in ('db_restore', 'download_export') then raise exception 'Invalid action type'; end if;
+  if target_action not in ('db_restore', 'download_export', 'schema_provision') then raise exception 'Invalid action type'; end if;
   if length(trim(request_reason)) < 5 then raise exception 'Reason must be at least 5 characters'; end if;
 
   insert into public.access_requests (organization_id, app_id, action_type, reason, requested_by, status)
@@ -400,6 +400,41 @@ begin
 end;
 $$;
 grant execute on function public.grant_data_access(uuid, integer) to authenticated;
+
+create or replace function public.approve_schema_provision(target_request uuid)
+returns text language plpgsql security definer
+set search_path = public, pg_temp
+as $$
+declare
+  req record;
+  result text;
+begin
+  if not public.is_platform_admin() then raise exception 'Super admin access required'; end if;
+
+  select * into req from public.access_requests
+  where id = target_request and status = 'pending' and action_type = 'schema_provision';
+
+  if not found then
+    raise exception 'Pending schema provisioning request not found';
+  end if;
+
+  result := public.restore_app_schema(req.organization_id, req.app_id);
+
+  update public.access_requests
+  set status = 'consumed',
+      granted_by = auth.uid(),
+      consumed_at = now(),
+      updated_at = now()
+  where id = req.id;
+
+  insert into public.audit_log(organization_id, actor_id, action, app_id, details)
+  values (req.organization_id, auth.uid(), 'approve_schema_provision', req.app_id,
+    jsonb_build_object('requested_by', req.requested_by, 'reason', req.reason));
+
+  return result;
+end;
+$$;
+grant execute on function public.approve_schema_provision(uuid) to authenticated;
 
 -- 8. Data Restoration from Snapshot using JIT Token
 create or replace function public.restore_data_from_snapshot(target_token text, target_snapshot uuid)

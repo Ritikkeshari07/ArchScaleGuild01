@@ -121,6 +121,17 @@ async function handleApi(req, res) {
     return json(res, 200, { ok: true, status: result });
   }
 
+  if (req.method === 'POST' && url.pathname === '/api/recovery/approve-schema') {
+    const body = await readBody(req);
+    const result = await supabaseRequest('/rest/v1/rpc/approve_schema_provision', {
+      token,
+      method: 'POST',
+      body: { target_request: body.requestId }
+    });
+    clearStateCache();
+    return json(res, 200, { ok: true, status: result });
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/recovery/request') {
     const body = await readBody(req);
     const state = await stateFor(token, user.id);

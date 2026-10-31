@@ -69,7 +69,7 @@ function render(){
   $('#app-cards').innerHTML=model.definitions.filter(d=>s.modules[d.id]?.status!=='removed').map(d=>{const status=s.modules[d.id]?.status||'deleted',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<a class="app-card ${status}" href="${esc(url)}"><div><span class="eyebrow">${esc(mod.deploymentMode||'APP')}</span><h3>${d.name}</h3><p>${d.description}</p><small>${esc(mod.workerName||'')} · deployment ${esc(mod.deploymentStatus||'planned')}</small></div><span class="pill ${status}">${status}</span><b class="open-app">Open ${d.name} →</b></a>`}).join('');
  }
  if(isAdmin){
-  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted',removed=status==='removed',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><small>Worker: ${esc(mod.workerName||'')} · deployment: ${esc(mod.deploymentStatus||'planned')}</small>${removed?'':`<a class="small-link" href="${esc(url)}">Open app workspace →</a>`}</div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'||removed?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted','removed'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'||removed?'disabled':''}>Delete data</button><button class="danger" data-action="remove" data-id="${d.id}" ${removed?'disabled':''}>Remove schema</button>${removed?`<button class="secondary" data-action="restore-schema" data-id="${d.id}">Restore from Blueprint</button>`:''}</div></article>`}).join('');
+  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted',removed=status==='removed',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><small>Worker: ${esc(mod.workerName||'')} · deployment: ${esc(mod.deploymentStatus||'planned')}</small>${removed?'':`<a class="small-link" href="${esc(url)}">Open app workspace →</a>`}</div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'||removed?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted','removed'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'||removed?'disabled':''}>Delete data</button><button class="danger" data-action="remove" data-id="${d.id}" ${removed?'disabled':''}>Remove schema</button></div></article>`}).join('');
   
   const pendingRequests = (s.recoveryRequests||[]).filter(r => r.status === 'pending');
   const recoveryCard = $('#recovery-admin-card');
@@ -79,12 +79,16 @@ function render(){
       $('#recovery-requests-list').innerHTML = pendingRequests.map(r => `
         <div class="module" style="margin-bottom:12px;background:#fdfcf7;border-color:#fae0aa">
           <div>
-            <b>${labels[r.appId]||r.appId} · ${r.actionType === 'db_restore' ? 'In-Place Database Restore' : 'Export File (.json) Download'}</b>
+            <b>${labels[r.appId]||r.appId} · ${r.actionType === 'schema_provision' ? 'Schema Blueprint Provisioning' : r.actionType === 'db_restore' ? 'In-Place Database Restore' : 'Export File (.json) Download'}</b>
             <span class="pill inactive">Pending Approval</span>
             <small>Reason: "${esc(r.reason)}" · Requested at ${new Date(r.createdAt).toLocaleTimeString()}</small>
           </div>
           <div class="controls">
-            <button class="primary" data-action="grant-recovery" data-request-id="${r.id}">Grant 1-Hour Access</button>
+            ${r.actionType === 'schema_provision' ? `
+              <button class="primary" data-action="approve-schema" data-request-id="${r.id}">Approve & Provision from Blueprint</button>
+            ` : `
+              <button class="primary" data-action="grant-recovery" data-request-id="${r.id}">Grant 1-Hour Access</button>
+            `}
           </div>
         </div>
       `).join('');
@@ -100,7 +104,22 @@ function render(){
   $('#app-title').textContent=labels[current];
   document.title=`${labels[current]} App Workspace`;
   const status=s.modules[current]?.status||'deleted';
-  if(status!=='active'){$('#status-message').innerHTML=`<div class="notice"><b>${labels[current]} is ${status}.</b>${status==='removed'?' Its app-owned schema is no longer installed.':' Ask Super Admin to activate it before using this app.'} Other app workspaces are available separately.</div>`;$('#workspace').innerHTML='';return;}
+  if(status!=='active'){
+    const hasPendingProvision = (s.recoveryRequests||[]).some(r => r.appId === current && r.actionType === 'schema_provision' && r.status === 'pending');
+    $('#status-message').innerHTML = status === 'removed' ? `
+      <div class="notice" style="background:#fdfcf7;border-color:#fae0aa">
+        <b>${labels[current]} is removed.</b> Its app-owned schema is not installed.
+        <div style="margin-top:10px">
+          ${hasPendingProvision ? `
+            <span class="pill inactive" style="padding:6px 10px">Schema Provisioning Requested (Pending Platform Admin Approval)</span>
+          ` : `
+            <button id="btn-request-schema" class="primary" type="button" style="padding:7px 12px;font-size:13px">Request Schema Provisioning from Platform Admin</button>
+          `}
+        </div>
+      </div>
+    ` : `<div class="notice"><b>${labels[current]} is ${status}.</b> Ask Super Admin to activate it before using this app. Other app workspaces are available separately.</div>`;
+    $('#workspace').innerHTML='';return;
+  }
   $('#status-message').innerHTML='';
   $('#workspace').innerHTML=renderApp(current,s);
  }
@@ -153,10 +172,14 @@ if(isAdmin){
       }catch(err){alert(err.message);b.disabled=false;b.textContent='Grant 1-Hour Access';}
       return;
     }
-    if(action==='restore-schema'){
-      if(!confirm(`Re-provision ${labels[id]} schema from master blueprint? Tables, policies, and contracts will be rebuilt cleanly.`))return;
-      try{await api(`/api/admin/modules/${id}/restore-schema`,{method:'POST'});await refresh();alert(`${labels[id]} schema restored from blueprint.`);}
-      catch(err){alert(err.message);}
+    if(action==='approve-schema'){
+      const reqId=b.dataset.requestId;
+      try{
+        b.disabled=true;b.textContent='Provisioning…';
+        await api('/api/recovery/approve-schema',{method:'POST',body:JSON.stringify({requestId:reqId})});
+        alert('Schema successfully provisioned from blueprint.');
+        await refresh();
+      }catch(err){alert(err.message);b.disabled=false;b.textContent='Approve & Provision from Blueprint';}
       return;
     }
     if(action==='delete'&&!confirm(`Delete ${labels[id]} records from the database? A permanent snapshot will be saved in the recovery vault before deletion.`))return;
@@ -167,9 +190,19 @@ if(isAdmin){
   });
 }
 if(current){
-  document.addEventListener('click',e=>{
+  document.addEventListener('click',async e=>{
     if(e.target.id==='open-recovery-btn'){
       showRecoveryModal(current,model.state);
+    }
+    if(e.target.id==='btn-request-schema'){
+      const reason=prompt(`Enter reason for requesting ${labels[current]} schema provisioning:`, 'Need workspace for app feature release');
+      if(!reason||reason.trim().length<5){alert('A reason of at least 5 characters is required.');return;}
+      try{
+        e.target.disabled=true;e.target.textContent='Submitting…';
+        await api('/api/recovery/request',{method:'POST',body:JSON.stringify({appId:current,actionType:'schema_provision',reason:reason.trim()})});
+        alert('Request submitted to Platform Admin. When approved, the schema will be automatically provisioned.');
+        await refresh();
+      }catch(err){alert(err.message);e.target.disabled=false;e.target.textContent='Request Schema Provisioning';}
     }
   });
 }
