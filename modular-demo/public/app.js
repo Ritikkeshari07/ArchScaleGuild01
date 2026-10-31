@@ -69,7 +69,30 @@ function render(){
   $('#app-cards').innerHTML=model.definitions.filter(d=>s.modules[d.id]?.status!=='removed').map(d=>{const status=s.modules[d.id]?.status||'deleted',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<a class="app-card ${status}" href="${esc(url)}"><div><span class="eyebrow">${esc(mod.deploymentMode||'APP')}</span><h3>${d.name}</h3><p>${d.description}</p><small>${esc(mod.workerName||'')} · deployment ${esc(mod.deploymentStatus||'planned')}</small></div><span class="pill ${status}">${status}</span><b class="open-app">Open ${d.name} →</b></a>`}).join('');
  }
  if(isAdmin){
-  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted',removed=status==='removed',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><small>Worker: ${esc(mod.workerName||'')} · deployment: ${esc(mod.deploymentStatus||'planned')}</small>${removed?'':`<a class="small-link" href="${esc(url)}">Open app workspace →</a>`}</div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'||removed?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted','removed'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'||removed?'disabled':''}>Delete data</button><button class="danger" data-action="remove" data-id="${d.id}" ${removed?'disabled':''}>Remove schema</button></div></article>`}).join('');
+  $('#registry').innerHTML=model.definitions.map(d=>{const status=s.modules[d.id]?.status||'deleted',removed=status==='removed',mod=s.modules[d.id]||{},url=mod.deploymentStatus==='deployed'&&mod.deploymentUrl?mod.deploymentUrl:`/apps/${d.id}`;return `<article class="module ${status}"><div><b>${d.name}</b><span class="pill ${status}">${status}</span><small>${s[d.collection]?.length||0} records · ${d.description}</small><small>Worker: ${esc(mod.workerName||'')} · deployment: ${esc(mod.deploymentStatus||'planned')}</small>${removed?'':`<a class="small-link" href="${esc(url)}">Open app workspace →</a>`}</div><div class="controls"><button data-action="activate" data-id="${d.id}" ${status==='active'||removed?'disabled':''}>Activate</button><button data-action="deactivate" data-id="${d.id}" ${status!=='active'?'disabled':''}>Deactivate</button><button data-action="retire" data-id="${d.id}" ${['retired','deleted','removed'].includes(status)?'disabled':''}>Retire</button><button class="danger" data-action="delete" data-id="${d.id}" ${status==='deleted'||removed?'disabled':''}>Delete data</button><button class="danger" data-action="remove" data-id="${d.id}" ${removed?'disabled':''}>Remove schema</button>${removed?`<button class="secondary" data-action="restore-schema" data-id="${d.id}">Restore from Blueprint</button>`:''}</div></article>`}).join('');
+  
+  const pendingRequests = (s.recoveryRequests||[]).filter(r => r.status === 'pending');
+  const recoveryCard = $('#recovery-admin-card');
+  if(recoveryCard){
+    if(pendingRequests.length > 0){
+      recoveryCard.style.display = 'block';
+      $('#recovery-requests-list').innerHTML = pendingRequests.map(r => `
+        <div class="module" style="margin-bottom:12px;background:#fdfcf7;border-color:#fae0aa">
+          <div>
+            <b>${labels[r.appId]||r.appId} · ${r.actionType === 'db_restore' ? 'In-Place Database Restore' : 'Export File (.json) Download'}</b>
+            <span class="pill inactive">Pending Approval</span>
+            <small>Reason: "${esc(r.reason)}" · Requested at ${new Date(r.createdAt).toLocaleTimeString()}</small>
+          </div>
+          <div class="controls">
+            <button class="primary" data-action="grant-recovery" data-request-id="${r.id}">Grant 1-Hour Access</button>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      recoveryCard.style.display = 'none';
+    }
+  }
+
   $('#audit').innerHTML=s.audit.slice(0,8).map(x=>`<div class="auditrow"><span class="pill">${esc(x.action)}</span><b>${esc(labels[x.moduleId]||x.moduleId)}</b><span>${esc(x.details)}</span><time>${new Date(x.at).toLocaleTimeString()}</time></div>`).join('')||'<p class="muted">No actions yet.</p>';
  }
  if(current){
@@ -106,7 +129,7 @@ function renderApp(id,s){const data=s[id]||[];
    `${field('Due date','dueDate','date')}${field('Status','status')}`
  };
  const rows=data.map(x=>`<tr>${recordCells(id,x,s)}</tr>`).join('');
- return `<div class="apphead"><div><span class="eyebrow">STANDALONE WORKSPACE · ${id.toUpperCase()}</span><h2>${labels[id]}</h2></div><span class="pill active">active</span></div><p class="muted">This app has its own page and module. Linked information is read from the shared platform.</p><form id="create" data-id="${id}" class="formgrid">${forms[id]}<button class="primary" type="submit">Save ${({contacts:'Contact',products:'Product',orders:'Order',tasks:'Task'})[id]}</button></form><div class="tablewrap"><table><thead><tr>${headers(id)}</tr></thead><tbody>${rows||`<tr><td colspan="8" class="empty">No ${labels[id].toLowerCase()} yet. Load the demo story from the home page or add one above.</td></tr>`}</tbody></table></div>`;
+ return `<div class="apphead"><div><span class="eyebrow">STANDALONE WORKSPACE · ${id.toUpperCase()}</span><h2>${labels[id]}</h2></div><div style="display:flex;align-items:center;gap:10px"><span class="pill active">active</span><button id="open-recovery-btn" type="button" class="secondary" style="padding:4px 9px;font-size:12px">Recovery Vault</button></div></div><p class="muted">This app has its own page and module. Linked information is read from the shared platform.</p><form id="create" data-id="${id}" class="formgrid">${forms[id]}<button class="primary" type="submit">Save ${({contacts:'Contact',products:'Product',orders:'Order',tasks:'Task'})[id]}</button></form><div class="tablewrap"><table><thead><tr>${headers(id)}</tr></thead><tbody>${rows||`<tr><td colspan="8" class="empty">No ${labels[id].toLowerCase()} yet. Load the demo story from the home page or add one above.</td></tr>`}</tbody></table></div>`;
 }
 function headers(id){return ({contacts:'<th>Name</th><th>Organization</th><th>Email</th><th>Phone</th><th>City</th><th>Related product</th><th>Related order</th><th>Related task</th>',products:'<th>Product</th><th>SKU</th><th>Category</th><th>Unit</th><th>Price</th><th>Related contact</th><th>Related order</th><th>Related task</th>',orders:'<th>Order</th><th>Customer</th><th>Product</th><th>Qty</th><th>Unit price</th><th>Total</th><th>Status</th><th>Related task</th>',tasks:'<th>Task</th><th>Assigned to</th><th>Due date</th><th>Status</th><th>Related order</th><th>Related contact</th><th>Related product</th>'})[id];}
 function relationshipCell(s,appId,id,snapshot){const value=String(snapshot||'').trim();if(!value)return '';const label=esc(value);const stillExists=Boolean(id)&&(s[appId]||[]).some(record=>record.id===id);return !id||stillExists?label:`<span class="snapshot-clean" title="Saved snapshot · source record deleted">${label}</span>`;}
@@ -116,7 +139,124 @@ function hasUnsavedFormDraft(){const form=$('#create');return Boolean(form&&[...
 async function pollSharedState(){if(!isAuthenticated||document.hidden)return;const latest=await api('/api/state');const signature=JSON.stringify(latest.state);if(signature===renderedStateSignature||hasUnsavedFormDraft()||document.activeElement?.closest('#create'))return;model=latest;renderedStateSignature=signature;render();}
 window.setInterval(()=>pollSharedState().catch(error=>{if(error.status!==401)console.error('Could not refresh shared app data.',error);}),8000);
 document.addEventListener('submit',async e=>{if(e.target.id!=='demo-login-form')return;e.preventDefault();const form=new FormData(e.target);try{const response=await fetch('/api/auth/login',{method:'POST',headers:{'content-type':'application/json'},credentials:'same-origin',body:JSON.stringify({email:form.get('email'),password:form.get('password')})});const result=await response.json();if(!response.ok)throw new Error(result.error||'Sign-in failed.');await refresh();$('#demo-login')?.remove();}catch(error){showLogin(error.message);}});
-if(isAdmin){$('#registry').addEventListener('click',async e=>{const b=e.target.closest('[data-action]');if(!b)return;const id=b.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm(`Delete ${labels[id]} records from the local database? Other apps keep their snapshots.`))return;if(action==='remove'&&!confirm(`Permanently remove the ${labels[id]} app schema and its records from this local pilot? Other apps keep saved snapshots and manual-entry fields. This cannot be undone without reinstalling the app.`))return;try{await api(`/api/admin/modules/${id}/${action}`,{method:'POST'});await refresh();}catch(err){alert(err.message);}});}
+if(isAdmin){
+  document.addEventListener('click',async e=>{
+    const b=e.target.closest('[data-action]');if(!b)return;
+    const id=b.dataset.id,action=b.dataset.action;
+    if(action==='grant-recovery'){
+      const reqId=b.dataset.requestId;
+      try{
+        b.disabled=true;b.textContent='Granting…';
+        const res=await api('/api/recovery/grant',{method:'POST',body:JSON.stringify({requestId:reqId,durationMinutes:60})});
+        alert(`Access granted for 1 hour.\nToken: ${res.authToken}`);
+        await refresh();
+      }catch(err){alert(err.message);b.disabled=false;b.textContent='Grant 1-Hour Access';}
+      return;
+    }
+    if(action==='restore-schema'){
+      if(!confirm(`Re-provision ${labels[id]} schema from master blueprint? Tables, policies, and contracts will be rebuilt cleanly.`))return;
+      try{await api(`/api/admin/modules/${id}/restore-schema`,{method:'POST'});await refresh();alert(`${labels[id]} schema restored from blueprint.`);}
+      catch(err){alert(err.message);}
+      return;
+    }
+    if(action==='delete'&&!confirm(`Delete ${labels[id]} records from the database? A permanent snapshot will be saved in the recovery vault before deletion.`))return;
+    if(action==='remove'&&!confirm(`Permanently remove the ${labels[id]} schema? Active data is automatically saved in the permanent backup vault first.`))return;
+    if(['activate','deactivate','retire','delete','remove'].includes(action)){
+      try{await api(`/api/admin/modules/${id}/${action}`,{method:'POST'});await refresh();}catch(err){alert(err.message);}
+    }
+  });
+}
+if(current){
+  document.addEventListener('click',e=>{
+    if(e.target.id==='open-recovery-btn'){
+      showRecoveryModal(current,model.state);
+    }
+  });
+}
+function showRecoveryModal(appId,s){
+  let modal=$('#recovery-modal');if(modal)modal.remove();
+  const appSnapshots=(s.snapshots||[]).filter(x=>x.appId===appId);
+  const activeApproval=(s.recoveryRequests||[]).find(r=>r.appId===appId&&r.status==='approved'&&new Date(r.expiresAt)>new Date());
+  modal=document.createElement('div');modal.id='recovery-modal';modal.className='login-overlay';
+  modal.innerHTML=`<section class="login-card" style="width:min(100%,500px);max-height:90vh;overflow:auto" role="dialog" aria-modal="true">
+    <span class="eyebrow">PERMANENT BACKUP VAULT · ${appId.toUpperCase()}</span>
+    <h2>Data Recovery</h2>
+    <p style="margin-bottom:12px">Vault contains <b>${appSnapshots.length}</b> historical backup(s) preserved permanently.</p>
+    ${activeApproval?`
+      <div class="notice" style="background:#eaf8ef;border-color:#a8e6be;color:#18753b;margin-bottom:14px">
+        <b>Access Granted by Super Admin</b><br>
+        <small>Token: <code>${esc(activeApproval.authToken)}</code> (Expires at ${new Date(activeApproval.expiresAt).toLocaleTimeString()})</small>
+      </div>
+      <form id="execute-recovery-form">
+        <label>Select Snapshot to Restore
+          <select id="restore-snapshot-select" required>
+            ${appSnapshots.map(snap=>`<option value="${snap.id}">${new Date(snap.createdAt).toLocaleString()} · ${snap.recordsCount} records (${snap.triggerAction})</option>`).join('')||'<option value="">No snapshots found</option>'}
+          </select>
+        </label>
+        ${activeApproval.actionType==='db_restore'?`
+          <button class="primary" type="submit" ${appSnapshots.length===0?'disabled':''}>Restore Snapshot to Database</button>
+        `:`
+          <button id="btn-download-backup" class="primary" type="button" ${appSnapshots.length===0?'disabled':''}>Download .json Backup</button>
+        `}
+        <button id="close-recovery-modal" class="secondary" type="button" style="margin-top:6px">Cancel</button>
+      </form>
+    `:`
+      <form id="request-recovery-form">
+        <label>Recovery Action Requested
+          <select name="actionType" required>
+            <option value="db_restore">Restore records to live database</option>
+            <option value="download_export">Download backup file (.json)</option>
+          </select>
+        </label>
+        <label>Reason for Request
+          <input name="reason" type="text" placeholder="e.g. Need to recover deleted QA records" required minlength="5">
+        </label>
+        <div id="recovery-form-msg" class="login-error"></div>
+        <button class="primary" type="submit">Submit Request to Super Admin</button>
+        <button id="close-recovery-modal" class="secondary" type="button" style="margin-top:6px">Cancel</button>
+      </form>
+    `}
+  </section>`;
+  document.body.append(modal);
+  modal.querySelector('#close-recovery-modal')?.addEventListener('click',()=>modal.remove());
+  const reqForm=modal.querySelector('#request-recovery-form');
+  if(reqForm){
+    reqForm.addEventListener('submit',async ev=>{
+      ev.preventDefault();
+      const form=new FormData(ev.target);
+      const actionType=form.get('actionType'),reason=form.get('reason');
+      const msg=modal.querySelector('#recovery-form-msg');
+      msg.textContent='';
+      try{
+        await api('/api/recovery/request',{method:'POST',body:JSON.stringify({appId,actionType,reason})});
+        alert('Request submitted to Super Admin. Once approved, return here to execute recovery.');
+        modal.remove();await refresh();
+      }catch(err){msg.textContent=err.message;}
+    });
+  }
+  const execForm=modal.querySelector('#execute-recovery-form');
+  if(execForm){
+    execForm.addEventListener('submit',async ev=>{
+      ev.preventDefault();
+      const snapshotId=modal.querySelector('#restore-snapshot-select').value;
+      if(!snapshotId)return;
+      try{
+        await api('/api/recovery/restore',{method:'POST',body:JSON.stringify({token:activeApproval.authToken,snapshotId})});
+        alert('Records successfully restored to database.');
+        modal.remove();await refresh();
+      }catch(err){alert(err.message);}
+    });
+  }
+  const dlBtn=modal.querySelector('#btn-download-backup');
+  if(dlBtn){
+    dlBtn.addEventListener('click',()=>{
+      const snapshotId=modal.querySelector('#restore-snapshot-select').value;
+      if(!snapshotId)return;
+      location.href=`/api/recovery/download?token=${encodeURIComponent(activeApproval.authToken)}&snapshotId=${encodeURIComponent(snapshotId)}`;
+      setTimeout(()=>modal.remove(),1500);
+    });
+  }
+}
 if(current){$('#workspace').addEventListener('submit',async e=>{
   if(e.target.id!=='create')return;
   e.preventDefault();

@@ -52,7 +52,9 @@ export async function getStateFor({ token, userId, definitions, appIds }) {
         moduleId: row.app_id,
         details: typeof row.details === 'object' ? JSON.stringify(row.details) : String(row.details || ''),
         at: row.created_at
-      }))
+      })),
+      snapshots: [],
+      recoveryRequests: []
     };
   } else {
     const memberships = await supabaseRequest(`/rest/v1/app_memberships?select=organization_id&user_id=eq.${encodeURIComponent(userId)}&is_active=eq.true&limit=1`, { token });
@@ -93,9 +95,20 @@ export async function getStateFor({ token, userId, definitions, appIds }) {
         moduleId: row.app_id,
         details: JSON.stringify(row.details),
         at: row.created_at
-      }))
+      })),
+      snapshots: [],
+      recoveryRequests: []
     };
   }
+
+  try {
+    const [snapRows, reqRows] = await Promise.all([
+      supabaseRequest('/rest/v1/data_snapshots?select=id,organization_id,app_id,trigger_action,records_count,created_at&order=created_at.desc&limit=30', { token }),
+      supabaseRequest('/rest/v1/access_requests?select=*&order=created_at.desc&limit=30', { token })
+    ]);
+    result.snapshots = (snapRows || []).map(toCamel);
+    result.recoveryRequests = (reqRows || []).map(toCamel);
+  } catch {}
 
   stateCache.set(userId, { state: result, ts: Date.now() });
   return result;

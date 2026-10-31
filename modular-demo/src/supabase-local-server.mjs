@@ -108,6 +108,93 @@ async function handleApi(req, res) {
     return json(res, 200, { ok: true, status: result });
   }
 
+  const schemaRestore = url.pathname.match(/^\/api\/admin\/modules\/(contacts|products|orders|tasks)\/restore-schema$/);
+  if (req.method === 'POST' && schemaRestore) {
+    const appId = schemaRestore[1];
+    const state = await stateFor(token, user.id);
+    const result = await supabaseRequest('/rest/v1/rpc/restore_app_schema', {
+      token,
+      method: 'POST',
+      body: { target_org: state.organizationId, target_app: appId }
+    });
+    clearStateCache();
+    return json(res, 200, { ok: true, status: result });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/recovery/request') {
+    const body = await readBody(req);
+    const state = await stateFor(token, user.id);
+    const requestId = await supabaseRequest('/rest/v1/rpc/request_data_access', {
+      token,
+      method: 'POST',
+      body: {
+        target_org: state.organizationId,
+        target_app: body.appId,
+        target_action: body.actionType,
+        request_reason: body.reason
+      }
+    });
+    clearStateCache();
+    return json(res, 201, { ok: true, requestId });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/recovery/grant') {
+    const body = await readBody(req);
+    const tokenResult = await supabaseRequest('/rest/v1/rpc/grant_data_access', {
+      token,
+      method: 'POST',
+      body: {
+        target_request: body.requestId,
+        duration_minutes: body.durationMinutes || 60
+      }
+    });
+    clearStateCache();
+    return json(res, 200, { ok: true, authToken: tokenResult });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/recovery/restore') {
+    const body = await readBody(req);
+    const result = await supabaseRequest('/rest/v1/rpc/restore_data_from_snapshot', {
+      token,
+      method: 'POST',
+      body: {
+        target_token: body.token,
+        target_snapshot: body.snapshotId
+      }
+    });
+    clearStateCache();
+    return json(res, 200, result);
+  }
+
+  if (req.method === 'GET' && url.pathname === '/api/recovery/download') {
+    const queryToken = url.searchParams.get('token');
+    const querySnapshotId = url.searchParams.get('snapshotId');
+    if (!queryToken || !querySnapshotId) return json(res, 400, { error: 'token and snapshotId required' });
+    const requests = await supabaseRequest(`/rest/v1/access_requests?select=*&auth_token=eq.${encodeURIComponent(queryToken)}&status=eq.approved`, { token });
+    if (!requests?.length || new Date(requests[0].expires_at) < new Date()) {
+      return json(res, 403, { error: 'Invalid or expired access token.' });
+    }
+    const accessReq = requests[0];
+    const snapshots = await supabaseRequest(`/rest/v1/data_snapshots?select=*&id=eq.${encodeURIComponent(querySnapshotId)}&app_id=eq.${encodeURIComponent(accessReq.app_id)}`, { token });
+    if (!snapshots?.length) return json(res, 404, { error: 'Snapshot not found.' });
+
+    await supabaseRequest(`/rest/v1/access_requests?id=eq.${encodeURIComponent(accessReq.id)}`, {
+      token,
+      method: 'PATCH',
+      body: { status: 'consumed', consumed_at: new Date().toISOString() }
+    });
+
+    const snap = snapshots[0];
+    const payload = JSON.stringify(snap.snapshot_payload, null, 2);
+    const filename = `${snap.app_id}-backup-${new Date().toISOString().slice(0, 10)}.json`;
+    res.writeHead(200, {
+      'content-type': 'application/json; charset=utf-8',
+      'content-disposition': `attachment; filename="${filename}"`,
+      'cache-control': 'no-store'
+    });
+    return res.end(payload);
+  }
+
   if (req.method === 'POST' && url.pathname === '/api/demo/reset') {
     const state = await stateFor(token, user.id);
     for (const appId of ['contacts', 'products', 'orders', 'tasks']) {

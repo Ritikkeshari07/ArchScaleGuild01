@@ -471,3 +471,4 @@ begin
 end;
 $$;
 grant execute on function public.restore_data_from_snapshot(text, uuid) to authenticated;
+
