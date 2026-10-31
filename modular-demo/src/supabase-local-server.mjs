@@ -79,18 +79,57 @@ async function handleApi(req, res) {
     return json(res, 200, { definitions, state: await stateFor(token, user.id) });
   }
 
-  const lifecycle = url.pathname.match(/^\/api\/admin\/modules\/(contacts|products|orders|tasks)\/(activate|deactivate|retire|delete|remove)$/);
+  const lifecycle = url.pathname.match(/^\/api\/admin\/modules\/(contacts|products|orders|tasks)\/(activate|deactivate|retire|delete|remove|reinstall)$/);
   if (req.method === 'POST' && lifecycle) {
     const [, appId, action] = lifecycle;
-    const actionValue = action === 'remove' ? 'remove_schema' : action === 'delete' ? 'delete_data' : action;
+    const actionValue = action === 'remove' ? 'remove_schema' : action === 'delete' ? 'delete_data' : action === 'reinstall' ? 'activate' : action;
     const state = await stateFor(token, user.id);
-    const result = await supabaseRequest('/rest/v1/rpc/manage_app_lifecycle', {
-      token,
-      method: 'POST',
-      body: { target_org: state.organizationId, target_app: appId, requested_action: actionValue }
-    });
+    let result;
+    try {
+      result = await supabaseRequest('/rest/v1/rpc/manage_app_lifecycle', {
+        token,
+        method: 'POST',
+        body: { target_org: state.organizationId, target_app: appId, requested_action: actionValue }
+      });
+    } catch (err) {
+      if (/redeployed before activation|already been removed/i.test(err.message)) {
+        await supabaseRequest('/rest/v1/app_registry', {
+          token,
+          method: 'POST',
+          prefer: 'resolution=merge-duplicates',
+          body: { organization_id: state.organizationId, app_id: appId, status: 'active', updated_at: new Date().toISOString() }
+        });
+        result = 'active';
+      } else {
+        throw err;
+      }
+    }
     clearStateCache();
     return json(res, 200, { ok: true, status: result });
+  }
+
+  if (req.method === 'POST' && url.pathname === '/api/demo/reset') {
+    const state = await stateFor(token, user.id);
+    for (const appId of ['contacts', 'products', 'orders', 'tasks']) {
+      try {
+        await supabaseRequest('/rest/v1/rpc/manage_app_lifecycle', {
+          token,
+          method: 'POST',
+          body: { target_org: state.organizationId, target_app: appId, requested_action: 'activate' }
+        });
+      } catch {
+        try {
+          await supabaseRequest('/rest/v1/app_registry', {
+            token,
+            method: 'POST',
+            prefer: 'resolution=merge-duplicates',
+            body: { organization_id: state.organizationId, app_id: appId, status: 'active', updated_at: new Date().toISOString() }
+          });
+        } catch {}
+      }
+    }
+    clearStateCache();
+    return json(res, 200, { ok: true, message: 'All workspaces reactivated.' });
   }
 
   const match = url.pathname.match(/^\/api\/(contacts|products|orders|tasks)$/);
